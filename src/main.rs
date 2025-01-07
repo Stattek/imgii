@@ -344,14 +344,22 @@ fn convert_ascii_to_png(input_file_name: String, output_file_name: String) {
 fn main() {
     let pool = threadpool::ThreadPool::new(num_cpus::get());
     let args: Vec<String> = env::args().collect();
-    if args.len() < 3 {
+    // we will only take 3 or 4 arguments, nothing else
+    if args.len() != 3 && args.len() != 4 {
         eprintln!(
-            "Usage: ascii_to_png <input_name_format> <output_name_format> <OPTIONAL: final_image_index>"
+            "Usage: ascii_to_png <input_name_format> <output_name_format> <OPTIONAL: final_image_index>\n\t- <input_name_format> can be a format for text files like 'image%d.txt' or it can be a plain input file name if only converting one file\n\t- <output_name_format> can be a format like 'outimage%d.png' or it can be a plain output file name if only converting one file\n\t- <final_image_index> is the final name index given to the images that you want to convert (if you want to convert more than one image)"
         );
         exit(1); // error
     }
     let input_name_format = Arc::new(args[1].clone());
-    let output_name_format = Arc::new(args[2].clone());
+    // panic if we don't find the .png extension at the end
+    let output_name_format = {
+        if !args[2].ends_with(".png") {
+            panic!("The <output_name_format> argument does not end with the .png extension")
+        } else {
+            Arc::new(args[2].clone())
+        }
+    };
 
     let final_image_index: u32 = {
         if args.len() > 3 {
