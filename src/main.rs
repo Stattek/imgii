@@ -347,7 +347,7 @@ fn main() {
     // we will only take 3 or 4 arguments, nothing else
     if args.len() != 3 && args.len() != 4 {
         eprintln!(
-            "Usage: ascii_to_png <input_name_format> <output_name_format> <OPTIONAL: final_image_index>\n\t- <input_name_format> can be a format for text files like 'image%d.txt' or it can be a plain input file name if only converting one file\n\t- <output_name_format> can be a format like 'outimage%d.png' or it can be a plain output file name if only converting one file\n\t- <final_image_index> is the final name index given to the images that you want to convert (if you want to convert more than one image)"
+            "Usage: ascii_to_png <input_name_format> <output_name_format> <OPTIONAL: final_image_index>\n\t- <input_name_format> can be a format for text files like 'image%d.txt' or it can be a plain input file name if only converting one file.\n\t- <output_name_format> can be a format like 'outimage%d.png' or it can be a plain output file name if only converting one file.\n\t- <final_image_index> is the final name index given to the images that you want to convert (if you want to convert more than one image)."
         );
         exit(1); // error
     }
