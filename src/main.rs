@@ -5,6 +5,7 @@ use std::{
     process::exit,
     sync::Arc,
     thread,
+    time::Instant,
 };
 
 use image::{imageops, load_from_memory, DynamicImage, GenericImageView, ImageBuffer};
@@ -363,6 +364,7 @@ fn main() {
         }
     };
 
+    let starting_time = Instant::now();
     for i in 1..=final_image_index {
         let copy_input_name_format = Arc::clone(&input_name_format);
         let copy_output_name_format = Arc::clone(&output_name_format);
@@ -375,5 +377,10 @@ fn main() {
     }
 
     pool.join();
-    println!("---Success!---")
+    println!("---Success!---");
+    println!(
+        "Time elapsed: {} seconds / {} milliseconds",
+        starting_time.elapsed().as_secs(),
+        starting_time.elapsed().as_millis()
+    );
 }
