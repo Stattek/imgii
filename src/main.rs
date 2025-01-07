@@ -2,8 +2,7 @@ use std::{
     env,
     fs::File,
     io::{BufRead, BufReader},
-    os::unix::process::CommandExt,
-    process::{exit, Command},
+    process::exit,
 };
 
 use image::{imageops, load_from_memory, DynamicImage, GenericImageView, ImageBuffer};
