@@ -332,7 +332,8 @@ fn convert_ascii_to_png(input_file_name: String, output_file_name: String) {
 
     match final_image_writer {
         Some(writer) => {
-            writer.imagebuf.save(output_file_name).unwrap();
+            writer.imagebuf.save(&output_file_name).unwrap();
+            println!("Saved PNG {}", output_file_name);
         }
         None => {
             panic!("Could not save the image!");
@@ -374,5 +375,5 @@ fn main() {
     }
 
     pool.join();
-    println!("Success!")
+    println!("---Success!---")
 }
