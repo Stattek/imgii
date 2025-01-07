@@ -3,6 +3,8 @@ use std::{
     fs::File,
     io::{BufRead, BufReader},
     process::exit,
+    sync::Arc,
+    thread,
 };
 
 use image::{imageops, load_from_memory, DynamicImage, GenericImageView, ImageBuffer};
@@ -339,17 +341,18 @@ fn convert_ascii_to_png(input_file_name: String, output_file_name: String) {
 }
 
 fn main() {
+    let pool = threadpool::ThreadPool::new(num_cpus::get());
     let args: Vec<String> = env::args().collect();
-    if args.len() != 3 {
+    if args.len() < 3 {
         eprintln!(
-            "Usage: ascii_to_png <input_name_format> <output_name_format> <OPTIONAL: num_inputs>"
+            "Usage: ascii_to_png <input_name_format> <output_name_format> <OPTIONAL: final_image_index>"
         );
         exit(1); // error
     }
-    let input_name_format = args[1].clone();
-    let output_name_format = args[2].clone();
+    let input_name_format = Arc::new(args[1].clone());
+    let output_name_format = Arc::new(args[2].clone());
 
-    let num_inputs: u32 = {
+    let final_image_index: u32 = {
         if args.len() > 3 {
             args[3]
                 .parse()
@@ -358,10 +361,18 @@ fn main() {
             1
         }
     };
-    for i in 1..=num_inputs {
-        // convert to ascii before performing the conversion
-        let input_file_name = input_name_format.replace("%d", i.to_string().as_str());
-        let output_file_name = output_name_format.replace("%d", i.to_string().as_str());
-        convert_ascii_to_png(input_file_name, output_file_name);
+
+    for i in 1..=final_image_index {
+        let copy_input_name_format = Arc::clone(&input_name_format);
+        let copy_output_name_format = Arc::clone(&output_name_format);
+        pool.execute(move || {
+            // convert to ascii before performing the conversion
+            let input_file_name = copy_input_name_format.replace("%d", i.to_string().as_str());
+            let output_file_name = copy_output_name_format.replace("%d", i.to_string().as_str());
+            convert_ascii_to_png(input_file_name, output_file_name);
+        });
     }
+
+    pool.join();
+    println!("Success!")
 }
