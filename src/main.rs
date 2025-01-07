@@ -34,11 +34,11 @@ impl MyImageWriter {
         }
     }
 
+    /// Creates a new image writer from an image buffer
     pub fn from_imagebuffer(imagebuf: ImageBuffer<image::Rgba<u8>, Vec<u8>>) -> Self {
         Self { imagebuf }
     }
 
-    // TODO: appends one src image to the right of the dst image, merging them together
     /// Creates a new image writer with two images appended.
     pub fn new_append_right(left: &ImageData, right: &ImageData) -> Result<Self, ()> {
         let left_img = &left.0;
@@ -206,7 +206,7 @@ impl MyImageWriter {
     }
 }
 
-// TODO: render a character into an image and then return the png data
+/// Converts string data into a png
 fn str_to_png(data: ColoredStr) -> Result<ImageData, TextToPngError> {
     let renderer = TextRenderer::default();
     let text_png = renderer.render_text_to_png_data(
@@ -245,9 +245,7 @@ fn convert_ascii_to_png(input_file_name: String, output_file_name: String) {
     for line in reader.lines().flatten() {
         let mut char_images = vec![];
         // we need to find each character that we are going to write
-        // TODO: use regex to find the rgb values for each character then print each character into its own image
-        // TODO: then, from each image that is created, we horizontally merge the character images to form a line of text
-        // TODO: finally, from each image containing a line of text, we should vertically merge the images to form a whole image of converted ascii to text.
+        // we assume that there's only one character for each color
         let pattern = r"\[38;2;([0-9]+);([0-9]+);([0-9]+)m(.)";
         let _control_char = '\u{1b}'; // another way to represent the ansi escape character `\033`
         let re = Regex::new(pattern).unwrap();
@@ -297,7 +295,6 @@ fn convert_ascii_to_png(input_file_name: String, output_file_name: String) {
                 MyImageWriter::from_imagedata(&line[0])
             } else {
                 // we don't have anything to write
-                // DEBUG: delete this debug text
                 eprintln!("WARNING: Skipped an empty line of images");
                 continue;
             }
