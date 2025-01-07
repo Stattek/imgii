@@ -7,6 +7,21 @@
         {
             "type": "lldb",
             "request": "launch",
+            "name": "Cargo launch with args",
+            "cargo": {
+                "args": [
+                    "build",
+                ]
+            },
+            "args": [
+                "tmp/gif_elfin/image%d.txt",
+                "outimage%d.png",
+                "330"
+            ]
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
             "name": "Cargo launch",
             "cargo": {
                 "args": [
