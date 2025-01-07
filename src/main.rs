@@ -1,16 +1,14 @@
 use std::{
+    env,
     fs::File,
-    io::{BufRead, BufReader, BufWriter, Read, Write},
-    str,
+    io::{BufRead, BufReader},
+    os::unix::process::CommandExt,
+    process::{exit, Command},
 };
 
-use image::{
-    buffer, imageops, load_from_memory, load_from_memory_with_format, write_buffer_with_format,
-    DynamicImage, ExtendedColorType, GenericImageView, ImageBuffer, ImageDecoder, ImageReader,
-    RgbaImage,
-};
+use image::{imageops, load_from_memory, DynamicImage, GenericImageView, ImageBuffer};
 use regex::Regex;
-use text_to_png::{Color, TextPng, TextRenderer, TextToPngError};
+use text_to_png::{Color, TextRenderer, TextToPngError};
 
 // represents a colored character to write
 struct ColoredStr {
@@ -220,25 +218,24 @@ fn str_to_png(data: ColoredStr) -> Result<ImageData, TextToPngError> {
 
     // we can manually read the data from this generated text image into another library `image`
     let mut loaded_img = load_from_memory(&text_png.data).unwrap();
-    loaded_img = loaded_img.resize_exact((CHAR_SIZE/2) as u32, CHAR_SIZE as u32, imageops::Nearest);
+    loaded_img =
+        loaded_img.resize_exact((CHAR_SIZE / 2) as u32, CHAR_SIZE as u32, imageops::Nearest);
 
     Ok(ImageData(loaded_img.into_rgba8()))
 }
 
 /// Creates a transparent png in place of a character
 fn str_to_transparent_png() -> ImageData {
-    let image = DynamicImage::new_rgba8((CHAR_SIZE/2) as u32, CHAR_SIZE as u32);
+    let image = DynamicImage::new_rgba8((CHAR_SIZE / 2) as u32, CHAR_SIZE as u32);
     ImageData(image.into_rgba8())
 }
 
-// The general idea:
-// Use regex to find the rgb values for each character then print each character into its own image
-// Then, from each image that is created, we horizontally merge the character images to form a line of text
-// Finally, from each image containing a line of text, we should vertically merge the images to form a whole image of converted ascii to text.
-fn main() {
-    let renderer = TextRenderer::default();
-
-    let mut infile = File::open("asciitest.txt").unwrap();
+/// The general idea:
+/// Use regex to find the rgb values for each character then print each character into its own image
+/// Then, from each image that is created, we horizontally merge the character images to form a line of text
+/// Finally, from each image containing a line of text, we should vertically merge the images to form a whole image of converted ascii to text.
+fn convert_ascii_to_png(input_file_name: String, output_file_name: String) {
+    let infile = File::open(&input_file_name).unwrap();
     let reader = BufReader::new(infile);
 
     // contains lines of images
@@ -253,7 +250,7 @@ fn main() {
         // TODO: then, from each image that is created, we horizontally merge the character images to form a line of text
         // TODO: finally, from each image containing a line of text, we should vertically merge the images to form a whole image of converted ascii to text.
         let pattern = r"\[38;2;([0-9]+);([0-9]+);([0-9]+)m(.)";
-        let control_char = '\u{1b}'; // another way to represent the ansi escape character `\033`
+        let _control_char = '\u{1b}'; // another way to represent the ansi escape character `\033`
         let re = Regex::new(pattern).unwrap();
         // create the image for this character
         for (_str, [r, g, b, the_str]) in re.captures_iter(&line).map(|c| c.extract()) {
@@ -337,10 +334,38 @@ fn main() {
 
     match final_image_writer {
         Some(writer) => {
-            writer.imagebuf.save("output.png").unwrap();
+            writer.imagebuf.save(output_file_name).unwrap();
         }
         None => {
             panic!("Could not save the image!");
         }
+    }
+}
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 3 {
+        eprintln!(
+            "Usage: ascii_to_png <input_name_format> <output_name_format> <OPTIONAL: num_inputs>"
+        );
+        exit(1); // error
+    }
+    let input_name_format = args[1].clone();
+    let output_name_format = args[2].clone();
+
+    let num_inputs: u32 = {
+        if args.len() > 3 {
+            args[3]
+                .parse()
+                .expect("Could not convert num_inputs to u32")
+        } else {
+            1
+        }
+    };
+    for i in 1..=num_inputs {
+        // convert to ascii before performing the conversion
+        let input_file_name = input_name_format.replace("%d", i.to_string().as_str());
+        let output_file_name = output_name_format.replace("%d", i.to_string().as_str());
+        convert_ascii_to_png(input_file_name, output_file_name);
     }
 }
