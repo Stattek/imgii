@@ -4,7 +4,6 @@ use std::{
     io::{BufRead, BufReader},
     process::exit,
     sync::Arc,
-    thread,
     time::Instant,
 };
 
