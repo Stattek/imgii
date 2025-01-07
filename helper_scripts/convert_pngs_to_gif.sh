@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-if [ "$#" -ne "2" ]; then
+if [ "$#" -ne "3" ]; then
     echo "Usage: convert_gif_to_pngs <fps> <gif_resolution> <output_image_name>"
     echo "Assumes that the input images are named outimage<num>.png and outputs the gif as <output_image_name>.gif"
     exit 1
