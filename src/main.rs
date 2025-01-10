@@ -21,7 +21,7 @@ struct ColoredStr {
     str: String,
 }
 
-const CHAR_SIZE: i32 = 16;
+const CHAR_FONT_SIZE: i32 = 16;
 
 /// Represents the image data to work with.
 /// Holds an `ImageBuffer` with the image data.
@@ -219,7 +219,7 @@ fn str_to_png(data: ColoredStr) -> Result<ImageData, ()> {
     let renderer = TextRenderer::default();
     let text_png = renderer.render_text_to_png_data(
         data.str,
-        CHAR_SIZE,
+        CHAR_FONT_SIZE,
         Color::new(data.red, data.green, data.blue),
     );
 
@@ -229,8 +229,8 @@ fn str_to_png(data: ColoredStr) -> Result<ImageData, ()> {
             match loaded_img {
                 Ok(mut loaded_img_val) => {
                     loaded_img_val = loaded_img_val.resize_exact(
-                        (CHAR_SIZE / 2) as u32,
-                        CHAR_SIZE as u32,
+                        (CHAR_FONT_SIZE / 2) as u32,
+                        CHAR_FONT_SIZE as u32,
                         imageops::Nearest,
                     );
                     // we can manually read the data from this generated text image into another library `image`
@@ -249,7 +249,7 @@ fn str_to_png(data: ColoredStr) -> Result<ImageData, ()> {
 
 /// Creates a transparent png in place of a character
 fn str_to_transparent_png() -> ImageData {
-    let image = DynamicImage::new_rgba8((CHAR_SIZE / 2) as u32, CHAR_SIZE as u32);
+    let image = DynamicImage::new_rgba8((CHAR_FONT_SIZE / 2) as u32, CHAR_FONT_SIZE as u32);
     ImageData::new(image.into_rgba8())
 }
 
