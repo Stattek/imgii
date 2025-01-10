@@ -14,11 +14,12 @@ use text_to_png::{Color, TextRenderer};
 
 /// Represents a colored string to write.
 /// All characters are contiguous and share the same color.
+#[derive(Debug)]
 struct ColoredStr {
     red: u8,
     blue: u8,
     green: u8,
-    str: String,
+    string: String,
 }
 
 const CHAR_FONT_SIZE: i32 = 16;
@@ -218,7 +219,7 @@ impl MyImageWriter {
 fn str_to_png(data: ColoredStr) -> Result<ImageData, ()> {
     let renderer = TextRenderer::default();
     let text_png = renderer.render_text_to_png_data(
-        data.str,
+        data.string,
         CHAR_FONT_SIZE,
         Color::new(data.red, data.green, data.blue),
     );
@@ -249,8 +250,9 @@ fn str_to_png(data: ColoredStr) -> Result<ImageData, ()> {
 
 /// Creates a transparent png in place of a character
 fn str_to_transparent_png() -> ImageData {
-    let image = DynamicImage::new_rgba8((CHAR_FONT_SIZE / 2) as u32, CHAR_FONT_SIZE as u32);
-    ImageData::new(image.into_rgba8())
+    ImageData::new(
+        DynamicImage::new_rgba8((CHAR_FONT_SIZE / 2) as u32, CHAR_FONT_SIZE as u32).into_rgba8(),
+    )
 }
 
 /// The general idea:
@@ -309,10 +311,11 @@ fn convert_ascii_to_png(input_file_name: &str, output_file_name: &str) {
                         red,
                         green,
                         blue,
-                        str: String::from(the_str),
+                        string: String::from(the_str),
                     };
 
-                    str_to_png(colored).expect("Could not convert str to png")
+                    str_to_png(colored)
+                        .expect(format!("Could not convert str ({}) to PNG", the_str).as_str())
                 }
             };
 
