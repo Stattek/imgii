@@ -1,7 +1,7 @@
 use image::{imageops, load_from_memory, DynamicImage};
 use text_to_png::{Color, TextRenderer};
 
-use crate::image_writer::ImageData;
+use crate::image_data::ImageData;
 
 /// Represents a colored string to write.
 /// All characters are contiguous and share the same color.
