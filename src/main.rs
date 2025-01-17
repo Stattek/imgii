@@ -1,6 +1,6 @@
+mod image_data;
 mod image_writer;
 mod render_char_to_png;
-mod image_data;
 
 use image_writer::MyImageWriter;
 use render_char_to_png::{str_to_png, str_to_transparent_png, ColoredStr};
