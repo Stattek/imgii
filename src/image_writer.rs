@@ -1,6 +1,7 @@
 use crate::image_data::ImageData;
 use crate::render_char_to_png::{CHAR_HEIGHT, CHAR_WIDTH};
 use image::GenericImageView;
+use rayon::prelude::*;
 
 #[derive(Clone)]
 pub struct AsciiImageWriter {
@@ -30,7 +31,7 @@ impl AsciiImageWriter {
         };
 
         let mut imgbuf = image::ImageBuffer::new(width, height);
-        for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
+        imgbuf.par_enumerate_pixels_mut().for_each(|(x, y, pixel)| {
             let new_pixel = {
                 if left.in_bounds(x, y) {
                     // we are within the width of the left image
@@ -48,7 +49,7 @@ impl AsciiImageWriter {
             };
             // write the pixel we have chosen
             *pixel = new_pixel;
-        }
+        });
 
         Self {
             imagebuf: ImageData::new(imgbuf),
@@ -70,7 +71,7 @@ impl AsciiImageWriter {
 
         let mut imgbuf: image::ImageBuffer<image::Rgba<u8>, Vec<u8>> =
             image::ImageBuffer::new(width, height);
-        for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
+        imgbuf.par_enumerate_pixels_mut().for_each(|(x, y, pixel)| {
             let new_pixel = {
                 if self.imagebuf.in_bounds(x, y) {
                     // we are within the width of the left image
@@ -89,7 +90,7 @@ impl AsciiImageWriter {
             };
             // write the pixel we have chosen
             *pixel = new_pixel;
-        }
+        });
 
         // save the new image buffer
         self.imagebuf = ImageData::new(imgbuf);
@@ -109,7 +110,7 @@ impl AsciiImageWriter {
         let height = self.imagebuf.height() + bottom.height();
 
         let mut imgbuf = image::ImageBuffer::new(width, height);
-        for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
+        imgbuf.par_enumerate_pixels_mut().for_each(|(x, y, pixel)| {
             let new_pixel = {
                 if self.imagebuf.in_bounds(x, y) {
                     // we are within the height of the left image
@@ -128,7 +129,7 @@ impl AsciiImageWriter {
             };
             // write the pixel we have chosen
             *pixel = new_pixel;
-        }
+        });
 
         // save the new image buffer
         self.imagebuf = ImageData::new(imgbuf);
@@ -148,7 +149,7 @@ impl AsciiImageWriter {
         let height = top.height() + bottom.height();
 
         let mut imgbuf = image::ImageBuffer::new(width, height);
-        for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
+        imgbuf.par_enumerate_pixels_mut().for_each(|(x, y, pixel)| {
             let new_pixel = {
                 if top.in_bounds(x, y) {
                     // we are within the height of the left image
@@ -168,7 +169,7 @@ impl AsciiImageWriter {
             };
             // write the pixel we have chosen
             *pixel = new_pixel;
-        }
+        });
 
         // save the new image buffer
         Self {
@@ -215,7 +216,7 @@ impl AsciiImageWriter {
         let mut canvas: image::ImageBuffer<image::Rgba<u8>, Vec<u8>> =
             image::ImageBuffer::new(width, height);
 
-        for (x, y, pixel) in canvas.enumerate_pixels_mut() {
+        canvas.par_enumerate_pixels_mut().for_each(|(x, y, pixel)| {
             // the index into the row and column from the parts vec
             let row = y / CHAR_HEIGHT as u32;
             let column = x / CHAR_WIDTH as u32;
@@ -227,7 +228,7 @@ impl AsciiImageWriter {
             let new_pixel = parts[row as usize][column as usize].get_pixel(inner_x, inner_y);
             // write the pixel we have chosen
             *pixel = *new_pixel;
-        }
+        });
 
         // save the new image buffer
         Some(Self {

@@ -330,6 +330,7 @@ version = "0.2.0"
 dependencies = [
  "image",
  "num_cpus",
+ "rayon",
  "regex",
  "text-to-png",
  "threadpool",
