@@ -34,9 +34,11 @@ cargo run -- my_ascii.txt my_ascii.png
 ## Example Output
 
 Original Image:
+
 ![107233826](https://github.com/user-attachments/assets/0ac74859-78d2-41d7-96a2-16390ba5d1ec)
 
 Output:
+
 ![image](https://github.com/user-attachments/assets/667ff6bb-3152-4d18-aa87-dac9aa6b179a)
 
 ## Future
