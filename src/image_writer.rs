@@ -1,12 +1,14 @@
 use crate::image_data::ImageData;
+use crate::render_char_to_png::{CHAR_HEIGHT, CHAR_WIDTH};
 use image::GenericImageView;
 #[derive(Clone)]
-pub struct MyImageWriter {
+pub struct AsciiImageWriter {
     pub imagebuf: ImageData,
 }
 
-impl MyImageWriter {
+impl AsciiImageWriter {
     /// Creates a new image writer containing a single image
+    #[allow(unused)]
     pub fn from_imagedata(the_image: ImageData) -> Self {
         Self {
             imagebuf: the_image,
@@ -14,7 +16,8 @@ impl MyImageWriter {
     }
 
     /// Creates a new image writer with two images appended.
-    /// NOTE: Very expensive.
+    /// NOTE: Very expensive when used in succession. Only use in special circumstances.
+    #[allow(unused)]
     pub fn new_append_right(left: &ImageData, right: &ImageData) -> Self {
         let width = left.width() + right.width();
         let height = {
@@ -52,7 +55,8 @@ impl MyImageWriter {
     }
 
     /// Appends an image to the right of the current image buffer.
-    /// NOTE: Very expensive.
+    /// NOTE: Very expensive when used in succession. Only use in special circumstances.
+    #[allow(unused)]
     pub fn append_right(&mut self, right: &ImageData) {
         let width = self.imagebuf.width() + right.width();
         let height = {
@@ -63,7 +67,8 @@ impl MyImageWriter {
             }
         };
 
-        let mut imgbuf = image::ImageBuffer::new(width, height);
+        let mut imgbuf: image::ImageBuffer<image::Rgba<u8>, Vec<u8>> =
+            image::ImageBuffer::new(width, height);
         for (x, y, pixel) in imgbuf.enumerate_pixels_mut() {
             let new_pixel = {
                 if self.imagebuf.in_bounds(x, y) {
@@ -90,7 +95,8 @@ impl MyImageWriter {
     }
 
     /// Appends an image to the bottom of the current image buffer.
-    /// NOTE: Very expensive.
+    /// NOTE: Very expensive when used in succession. Only use in special circumstances.
+    #[allow(unused)]
     pub fn append_down(&mut self, bottom: &ImageData) {
         let width = {
             if self.imagebuf.width() > bottom.width() {
@@ -128,7 +134,8 @@ impl MyImageWriter {
     }
 
     /// Appends an image to the bottom of the current image buffer.
-    /// NOTE: Very expensive.
+    /// NOTE: Very expensive when used in succession. Only use in special circumstances.
+    #[allow(unused)]
     pub fn new_append_down(top: &ImageData, bottom: &ImageData) -> Self {
         let width = {
             if top.width() > bottom.width() {
@@ -166,5 +173,64 @@ impl MyImageWriter {
         Self {
             imagebuf: ImageData::new(imgbuf),
         }
+    }
+
+    /// Builds a new image from a 2d `Vec` of image parts.
+    ///
+    /// # Params
+    /// - `parts` - A 2d `Vec` of images, with the `parts` array containing the rows (starting from 0
+    /// as the top of the image) and the inner array containing the columns (starting from 0 as
+    /// the leftmost part of the image).
+    ///
+    /// # Returns
+    /// - An `Option` containing `Some` `AsciiImageWriter` upon success, or a
+    /// `None` upon failure.
+    pub fn from_2d_vec(parts: Vec<Vec<ImageData>>) -> Option<Self> {
+        if parts.is_empty() || parts[0].is_empty() {
+            return None; // no image to build
+        }
+
+        let (mut height, mut width) = (0, 0);
+        // find out the new canvas size
+        let mut cur_line = 0;
+        for line in &parts {
+            // assume that every image has the same height and width
+            if !line.is_empty() {
+                height += line[0].height();
+                // calculate the width
+                width = line[0].width() * line.len() as u32;
+            } else {
+                eprintln!(
+                    "Skipped an empty line of images at line {}! Malformed data?",
+                    cur_line
+                );
+                return None;
+            }
+
+            cur_line += 1;
+        }
+
+        // create the new canvas to write to
+        let mut canvas: image::ImageBuffer<image::Rgba<u8>, Vec<u8>> =
+            image::ImageBuffer::new(width, height);
+
+        for (x, y, pixel) in canvas.enumerate_pixels_mut() {
+            // the index into the row and column from the parts vec
+            let row = y / CHAR_HEIGHT as u32;
+            let column = x / CHAR_WIDTH as u32;
+
+            // the index into the inner image that we want to read from
+            let inner_x = x % CHAR_WIDTH as u32;
+            let inner_y = y % CHAR_HEIGHT as u32;
+
+            let new_pixel = parts[row as usize][column as usize].get_pixel(inner_x, inner_y);
+            // write the pixel we have chosen
+            *pixel = *new_pixel;
+        }
+
+        // save the new image buffer
+        Some(Self {
+            imagebuf: ImageData::new(canvas),
+        })
     }
 }

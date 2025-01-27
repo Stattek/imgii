@@ -2,7 +2,7 @@ mod image_data;
 mod image_writer;
 mod render_char_to_png;
 
-use image_writer::MyImageWriter;
+use image_writer::AsciiImageWriter;
 use render_char_to_png::{str_to_png, str_to_transparent_png, ColoredStr};
 use std::{
     env,
@@ -85,53 +85,7 @@ fn convert_ascii_to_png(input_file_name: &str, output_file_name: &str) {
         lines.push(char_images);
     }
 
-    let mut image_writers = vec![];
-    for line in lines {
-        let image_writer = {
-            if line.len() >= 2 {
-                // if the current line is at least two images, then we append them together and then the rest of them
-                let mut the_writer = MyImageWriter::new_append_right(&line[0], &line[1]);
-
-                for i in 2..line.len() {
-                    // append all of the images in this line
-                    the_writer.append_right(&line[i]);
-                }
-
-                the_writer
-            } else if line.len() > 0 {
-                MyImageWriter::from_imagedata(line[0].clone())
-            } else {
-                // we don't have anything to write
-                eprintln!("WARNING: Skipped an empty line of images");
-                continue;
-            }
-        };
-        image_writers.push(image_writer);
-    }
-
-    let final_image_writer: Option<MyImageWriter> = {
-        if image_writers.len() >= 2 {
-            // if the current line is at least two images, then we append them together and then the rest of them
-            let mut the_writer = MyImageWriter::new_append_down(
-                &image_writers[0].imagebuf,
-                &image_writers[1].imagebuf,
-            );
-
-            for i in 2..image_writers.len() {
-                // append all of the images in this line
-                the_writer.append_down(&image_writers[i].imagebuf);
-            }
-
-            Some(the_writer)
-        } else if image_writers.len() > 0 {
-            Some(MyImageWriter::from_imagedata(
-                image_writers[0].imagebuf.clone(),
-            ))
-        } else {
-            // we don't have anything to write
-            None
-        }
-    };
+    let final_image_writer: Option<AsciiImageWriter> = AsciiImageWriter::from_2d_vec(lines);
 
     match final_image_writer {
         Some(writer) => {
@@ -188,9 +142,13 @@ fn main() {
             convert_ascii_to_png(&input_file_name, &output_file_name);
         });
     }
-
     pool.join();
-    println!("---Success!---");
+    if pool.panic_count() > 0 {
+        eprintln!("---FAIL---");
+        eprintln!("{} thread(s) panicked!", pool.panic_count());
+    } else {
+        println!("---Success!---");
+    }
     println!(
         "Time elapsed: {} seconds / {} milliseconds",
         starting_time.elapsed().as_secs(),
