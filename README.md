@@ -3,7 +3,7 @@
 This is a CPU-only image rendering program that renders colored ANSI-encoded ASCII art and saves them in the
 PNG format.
 
-This program DOES NOT work with non-colored ANSI-encoded ASCII art.
+This program DOES NOT work with pure, non-colored ASCII art.
 
 To attain ascii with this coloring, some ascii programs like `jp2a`
 can create ascii text files that work with this program, as they create ANSI color escape sequences
