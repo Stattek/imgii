@@ -1,8 +1,38 @@
 # ascii_to_png
-- This is a not well optimized program that renders ascii text with ANSI color escape sequences that contain only one letter per each escape sequence. I made it for fun.
-- This program does not work with non-colored ascii text.
-- To attain ascii with this coloring, some ascii programs like `jp2a` can create ascii text files that work with this program, as they create ANSI color escape sequences for one character at a time (as of creating this program, `jp2a` version 1.1.1 has this behavior).
-- This program is multithreaded to make it faster, but it is very expensive. Beware of 100% CPU utilization.
 
-# TODO:
-- Optimize the program, as it does a lot of copying of images to get to the fully-created final ASCII png. This could be made better possibly by creating one ImageBuffer to hold the final image, and taking each individual ImageBuffer for the smaller images and writing them to the one ImageBuffer (likely keeping track of some grid and the bounds at which each smaller image would belong in the image), ensuring that the copy does not happen multiple times, as appending the images to one another repeatedly to create the full image is very inefficient.
+This is a CPU-only image rendering program that renders colored ANSI-encoded ASCII art and saves them in the
+PNG format.
+
+This program DOES NOT work with non-colored ANSI-encoded ASCII art.
+
+To attain ascii with this coloring, some ascii programs like `jp2a`
+can create ascii text files that work with this program, as they create ANSI color escape sequences
+for one character at a time (as of creating this program, `jp2a` version 1.1.1 has this behavior
+**and is the version tested when creating this program**).
+
+This program is multithreaded to make it faster, but it is very CPU-intensive due to not utilizing the GPU.
+Beware of 100% CPU utilization if converting many images in parallel (when converting a batch of images,
+which this program can handle for you).
+
+## Usage
+
+Using jp2a, we can convert an image `my_image.png` into colored ANSI-enconded
+ASCII art with the following command, saving the output in `my_ascii.txt`.
+
+```sh
+# you can set whichever width you want, depending on what looks best. This is if we wanted a width of 80.
+jp2a --colored --width=80 my_image.png > my_ascii.txt
+```
+
+Then, we can run the program on that file and convert it to a PNG, saving it as
+`my_ascii.png`.
+
+```sh
+cargo run -- my_ascii.txt my_ascii.png
+```
+
+## Future
+
+In the future, it would be ideal for this program to also handle converting the image into the ASCII
+format required for running this program. This would simplify the process of conversion for users and
+would remove the pain of having to use external programs to use this program.  
