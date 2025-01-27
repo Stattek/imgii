@@ -14,6 +14,8 @@ pub struct ColoredStr {
 }
 
 const CHAR_FONT_SIZE: i32 = 16;
+const CHAR_HEIGHT: i32 = CHAR_FONT_SIZE;
+const CHAR_WIDTH: i32 = CHAR_FONT_SIZE / 2;
 
 /// Converts string data into a png
 pub fn str_to_png(data: ColoredStr) -> Result<ImageData, ()> {
@@ -30,8 +32,8 @@ pub fn str_to_png(data: ColoredStr) -> Result<ImageData, ()> {
             match loaded_img {
                 Ok(mut loaded_img_val) => {
                     loaded_img_val = loaded_img_val.resize_exact(
-                        (CHAR_FONT_SIZE / 2) as u32,
-                        CHAR_FONT_SIZE as u32,
+                        CHAR_WIDTH as u32,
+                        CHAR_HEIGHT as u32,
                         imageops::Nearest,
                     );
                     // we can manually read the data from this generated text image into another library `image`
@@ -51,7 +53,5 @@ pub fn str_to_png(data: ColoredStr) -> Result<ImageData, ()> {
 /// Creates a transparent png in place of a character
 /// FUTURE: if this is made to support multiple characters per color, take input for number of characters and make the transparent image based off of that.
 pub fn str_to_transparent_png() -> ImageData {
-    ImageData::new(
-        DynamicImage::new_rgba8((CHAR_FONT_SIZE / 2) as u32, CHAR_FONT_SIZE as u32).into_rgba8(),
-    )
+    ImageData::new(DynamicImage::new_rgba8(CHAR_WIDTH as u32, CHAR_HEIGHT as u32).into())
 }
