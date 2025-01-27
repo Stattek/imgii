@@ -35,4 +35,4 @@ cargo run -- my_ascii.txt my_ascii.png
 
 In the future, it would be ideal for this program to also handle converting the image into the ASCII
 format required for running this program. This would simplify the process of conversion for users and
-would remove the pain of having to use external programs to use this program.  
+would remove the pain of having to use external programs to use this program.
