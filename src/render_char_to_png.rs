@@ -13,9 +13,9 @@ pub struct ColoredStr {
     pub string: String,
 }
 
-const CHAR_FONT_SIZE: i32 = 16;
-const CHAR_HEIGHT: i32 = CHAR_FONT_SIZE;
-const CHAR_WIDTH: i32 = CHAR_FONT_SIZE / 2;
+pub const CHAR_FONT_SIZE: i32 = 16;
+pub const CHAR_HEIGHT: i32 = CHAR_FONT_SIZE;
+pub const CHAR_WIDTH: i32 = CHAR_FONT_SIZE / 2;
 
 /// Converts string data into a png
 pub fn str_to_png(data: ColoredStr) -> Result<ImageData, ()> {
