@@ -1,6 +1,7 @@
 use crate::image_data::ImageData;
 use crate::render_char_to_png::{CHAR_HEIGHT, CHAR_WIDTH};
 use image::GenericImageView;
+
 #[derive(Clone)]
 pub struct AsciiImageWriter {
     pub imagebuf: ImageData,
