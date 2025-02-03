@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 
-if [ "$#" -ne "2" ]; then
-    echo "Usage: convert_pngs_to_gif <input_gif_name> <fps>"
-    echo "Always outputs the images as 'image%d.png'"
+if [ "$#" -ne "3" ]; then
+    echo "Usage: convert_gif_to_pngs <input_png_name_format> <fps> <output_gif_name>"
+    echo "input_png_name_format should be something like 'out_image%d.png'"
     exit 1
 fi
 
-INPUT_GIF_NAME="$1"
+INPUT_PNG_NAME_FORMAT="$1"
 FPS="$2"
+OUTPUT_GIF_NAME="$3"
 
-ffmpeg -i "$INPUT_GIF_NAME" -vf "fps=$FPS/1" "image%d.png"
+ffmpeg -framerate "$FPS" -i "$INPUT_PNG_NAME_FORMAT" "$OUTPUT_GIF_NAME"
