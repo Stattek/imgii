@@ -51,7 +51,6 @@ pub fn str_to_png(data: ColoredStr) -> Result<ImageData, ()> {
 }
 
 /// Creates a transparent png in place of a character
-/// FUTURE: if this is made to support multiple characters per color, take input for number of characters and make the transparent image based off of that.
 pub fn str_to_transparent_png() -> ImageData {
     ImageData::new(DynamicImage::new_rgba8(CHAR_WIDTH as u32, CHAR_HEIGHT as u32).into())
 }
