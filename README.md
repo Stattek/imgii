@@ -16,19 +16,24 @@ which this program can handle for you).
 
 ## Usage
 
-Using jp2a, we can convert an image `my_image.png` into colored ANSI-enconded
-ASCII art with the following command, saving the output in `my_ascii.txt`.
+```text
+Usage: ascii_png_renderer [OPTIONS] <INPUT_FILENAME> <OUTPUT_FILENAME> [FINAL_IMAGE_INDEX]
 
-```sh
-# you can set whichever width you want, depending on what looks best. This is if we wanted a width of 80.
-jp2a --colored --width=80 my_image.png > my_ascii.txt
+Arguments:
+  <INPUT_FILENAME>     Path to the input image
+  <OUTPUT_FILENAME>    Path to the output image
+  [FINAL_IMAGE_INDEX]  Allows for converting multiple images. Specifies the final image index
+
+Options:
+  -w, --width <WIDTH>    Width of the output image. Defaults to 128 if width and height are not specified
+  -H, --height <HEIGHT>  Height of the output image, if not specified, it will be calculated to keep the aspect ratio
+  -i, --invert           Inverts the weights of the characters. Useful for white backgrounds
+  -h, --help             Print help
+  -V, --version          Print version
 ```
 
-Then, we can run the program on that file and convert it to a PNG, saving it as
-`my_ascii.png`.
-
 ```sh
-cargo run -- my_ascii.txt my_ascii.png
+cargo run -- my_image.png my_ascii.png
 ```
 
 ## Example Output
