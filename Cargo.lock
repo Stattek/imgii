@@ -124,6 +124,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7c02d123df017efcdfbd739ef81735b36c5ba83ec3c59c80a9d7ecc718f92e50"
 
 [[package]]
+name = "ascii_png_renderer"
+version = "0.2.0"
+dependencies = [
+ "clap",
+ "image",
+ "num_cpus",
+ "rascii_art",
+ "rayon",
+ "regex",
+ "text-to-png",
+ "threadpool",
+ "unicode-segmentation",
+]
+
+[[package]]
 name = "autocfg"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -430,19 +445,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gif_to_ascii"
-version = "0.2.0"
-dependencies = [
- "image 0.25.5",
- "num_cpus",
- "rascii_art",
- "rayon",
- "regex",
- "text-to-png",
- "threadpool",
-]
-
-[[package]]
 name = "half"
 version = "2.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -469,24 +471,6 @@ name = "hermit-abi"
 version = "0.3.9"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "d231dfb89cfffdbc30e7fc41579ed6066ad03abda9e567ccafae602b97ec5024"
-
-[[package]]
-name = "image"
-version = "0.24.9"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5690139d2f55868e080017335e4b94cb7414274c74f1669c84fb5feba2c9f69d"
-dependencies = [
- "bytemuck",
- "byteorder",
- "color_quant",
- "exr",
- "gif",
- "jpeg-decoder 0.3.1",
- "num-traits",
- "png",
- "qoi",
- "tiff",
-]
 
 [[package]]
 name = "image"
@@ -583,9 +567,6 @@ name = "jpeg-decoder"
 version = "0.3.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f5d4a7da358eff58addd2877a45865158f0d78c911d43a5784ceb7bbf52833b0"
-dependencies = [
- "rayon",
-]
 
 [[package]]
 name = "kurbo"
@@ -902,7 +883,7 @@ version = "0.4.5"
 dependencies = [
  "ansi_term",
  "clap",
- "image 0.24.9",
+ "image",
  "unicode-segmentation",
 ]
 
