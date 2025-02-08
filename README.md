@@ -60,9 +60,3 @@ Original Image:
 Output:
 
 ![image](https://github.com/user-attachments/assets/667ff6bb-3152-4d18-aa87-dac9aa6b179a)
-
-## Future
-
-In the future, it would be ideal for this program to also handle converting the image into the ASCII
-format required for running this program. This would simplify the process of conversion for users and
-would remove the pain of having to use external programs to use this program.
