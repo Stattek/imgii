@@ -13,9 +13,19 @@ use std::{sync::Arc, time::Instant};
 #[command(author, version, about)]
 struct Args {
     /// Path to the input image
+    ///
+    /// Can also specify a format for an input, if <FINAL_IMAGE_INDEX> is also set to the final
+    /// input image index.
+    ///
+    /// Example: "input_image%d.png"
     input_filename: String,
 
     /// Path to the output image
+    ///
+    /// Can also specify a format for an input, if <FINAL_IMAGE_INDEX> is also set to the final
+    /// input image index (will use the same index as the original image).
+    ///
+    /// Example: "output_image%d.png"
     output_filename: String,
 
     /// Width of the output image. Defaults to 128 if width and height are not
@@ -32,7 +42,7 @@ struct Args {
     #[arg(short, long)]
     invert: bool,
 
-    /// Allows for converting multiple images. Specifies the final image index.
+    /// Allows for converting multiple images. Specifies the final input image index.
     final_image_index: Option<u32>,
 }
 
