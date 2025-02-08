@@ -1,18 +1,47 @@
+mod image_converter;
 mod image_data;
-mod image_reader;
 mod image_writer;
 mod render_char_to_png;
 
-use crate::image_reader::parse_ascii;
+use crate::image_converter::parse_ascii;
 use crate::image_writer::AsciiImageWriter;
-use std::{env, process::exit, sync::Arc, time::Instant};
+use clap::Parser;
+use rascii_art::{charsets::SLIGHT, RenderOptions};
+use std::{sync::Arc, time::Instant};
+
+#[derive(Debug, Parser)]
+#[command(author, version, about)]
+struct Args {
+    /// Path to the input image
+    input_filename: String,
+
+    /// Path to the output image
+    output_filename: String,
+
+    /// Width of the output image. Defaults to 128 if width and height are not
+    /// specified
+    #[arg(short, long)]
+    width: Option<u32>,
+
+    /// Height of the output image, if not specified, it will be calculated to
+    /// keep the aspect ratio
+    #[arg(short = 'H', long)]
+    height: Option<u32>,
+
+    /// Inverts the weights of the characters. Useful for white backgrounds
+    #[arg(short, long)]
+    invert: bool,
+
+    /// Allows for converting multiple images. Specifies the final image index.
+    final_image_index: Option<u32>,
+}
 
 /// The general idea:
 /// Use regex to find the rgb values for each character then print each character into its own image
 /// Then, from each image that is created, we horizontally merge the character images to form a line of text
 /// Finally, from each image containing a line of text, we should vertically merge the images to form a whole image of converted ascii to text.
-fn convert_ascii_to_png(input_file_name: &str, output_file_name: &str) {
-    let lines = parse_ascii(input_file_name);
+fn convert_ascii_to_png(input_file_name: &str, output_file_name: &str, options: &RenderOptions) {
+    let lines = parse_ascii(input_file_name, options);
     let final_image_writer: Option<AsciiImageWriter> = AsciiImageWriter::from_2d_vec(lines);
 
     match final_image_writer {
@@ -31,43 +60,45 @@ fn convert_ascii_to_png(input_file_name: &str, output_file_name: &str) {
 
 fn main() {
     let pool = threadpool::ThreadPool::new(num_cpus::get());
-    let args: Vec<String> = env::args().collect();
-    // we will only take 3 or 4 arguments, nothing else
-    if args.len() != 3 && args.len() != 4 {
-        eprintln!(
-            "Usage: ascii_to_png <input_name_format> <output_name_format> <OPTIONAL: final_image_index>\n\t- <input_name_format> can be a format for text files like 'image%d.txt' or it can be a plain input file name if only converting one file.\n\t- <output_name_format> can be a format like 'outimage%d.png' or it can be a plain output file name if only converting one file.\n\t- <final_image_index> is the final name index given to the images that you want to convert (if you want to convert more than one image)."
-        );
-        exit(1); // fail
+    let mut args = Args::parse();
+
+    if args.width.is_none() && args.height.is_none() {
+        args.width = Some(128);
     }
-    let input_name_format = Arc::new(args[1].clone());
+
+    let input_name_format = Arc::new(args.input_filename.clone());
     // panic if we don't find the .png extension at the end
     let output_name_format = {
-        if !args[2].ends_with(".png") {
-            panic!("The <output_name_format> argument does not end with the .png extension")
+        if !args.output_filename.ends_with(".png") {
+            panic!("The <output_filename> argument does not end with the .png extension")
         } else {
-            Arc::new(args[2].clone())
+            Arc::new(args.output_filename.clone())
         }
     };
 
-    let final_image_index: u32 = {
-        if args.len() > 3 {
-            args[3]
-                .parse()
-                .expect("Could not convert num_inputs to u32")
-        } else {
-            1
-        }
-    };
+    let final_image_index: u32 = args.final_image_index.unwrap_or(1);
+
+    let options = Arc::from(RenderOptions {
+        width: args.width,
+        height: args.height,
+        colored: true,
+        escape_each_colored_char: true,
+        invert: args.invert,
+        // TODO: allow specifying this with an enum/some integer value so it isn't angry about borrows due to multithreading
+        charset: SLIGHT,
+    });
 
     let starting_time = Instant::now();
     for i in 1..=final_image_index {
-        let copy_input_name_format = Arc::clone(&input_name_format);
-        let copy_output_name_format = Arc::clone(&output_name_format);
+        let input_name_format_arc = Arc::clone(&input_name_format);
+        let output_name_format_arc = Arc::clone(&output_name_format);
+        let options_arc = Arc::clone(&options);
+
         pool.execute(move || {
             // convert to ascii before performing the conversion
-            let input_file_name = copy_input_name_format.replace("%d", i.to_string().as_str());
-            let output_file_name = copy_output_name_format.replace("%d", i.to_string().as_str());
-            convert_ascii_to_png(&input_file_name, &output_file_name);
+            let input_file_name = input_name_format_arc.replace("%d", i.to_string().as_str());
+            let output_file_name = output_name_format_arc.replace("%d", i.to_string().as_str());
+            convert_ascii_to_png(&input_file_name, &output_file_name, &options_arc);
         });
     }
     pool.join();
