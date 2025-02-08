@@ -6,7 +6,7 @@ mod render_char_to_png;
 use crate::image_converter::parse_ascii;
 use crate::image_writer::AsciiImageWriter;
 use clap::Parser;
-use rascii_art::{charsets::SLIGHT, RenderOptions};
+use rascii_art::{charsets::{MINIMAL, SLIGHT}, RenderOptions};
 use std::{sync::Arc, time::Instant};
 
 #[derive(Debug, Parser)]
@@ -85,7 +85,7 @@ fn main() {
         escape_each_colored_char: true,
         invert: args.invert,
         // TODO: allow specifying this with an enum/some integer value so it isn't angry about borrows due to multithreading
-        charset: SLIGHT,
+        charset: MINIMAL,
     });
 
     let starting_time = Instant::now();
