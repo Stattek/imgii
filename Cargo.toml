@@ -1,5 +1,5 @@
 [package]
-name = "ascii_png_renderer"
+name = "ascii_to_png"
 version = "0.2.0"
 edition = "2021"
 
