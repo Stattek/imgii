@@ -1,24 +1,29 @@
 use crate::image_data::ImageData;
 
 use super::render_char_to_png::{str_to_png, str_to_transparent_png, ColoredStr};
+use image::{load_from_memory, open};
+use rascii_art::{render_image_to, RenderOptions};
 use regex::Regex;
 use std::{
     fs::File,
     io::{BufRead, BufReader},
 };
 
-pub fn parse_ascii(input_file_name: &str) -> Vec<Vec<ImageData>> {
-    let infile = File::open(&input_file_name)
-        .expect(format!("Error opening input file {}", input_file_name).as_str());
-    let reader = BufReader::new(infile);
+pub fn parse_ascii(input_file_name: &str, options: &RenderOptions) -> Vec<Vec<ImageData>> {
+    let mut ascii_text = String::new();
+    let loaded_img =
+        open(input_file_name).expect(format!("Could not open file ({})", input_file_name).as_str());
+    render_image_to(&loaded_img, &mut ascii_text, &options)
+        .expect("Error converting image to ASCII");
 
+    println!("{}", ascii_text);
     // contains lines of images
     // starting at 0 is the top, first line of the vector
     // inside an inner vec, 0 starts at the leftmost character of the line
     let mut lines = vec![];
 
     // read every line in the file
-    for line in reader.lines().flatten() {
+    for line in ascii_text.lines() {
         let mut char_images = vec![];
 
         // we need to find each character that we are going to write
