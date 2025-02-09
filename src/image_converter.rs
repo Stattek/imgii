@@ -1,13 +1,9 @@
 use crate::image_data::ImageData;
 
 use super::render_char_to_png::{str_to_png, str_to_transparent_png, ColoredStr};
-use image::{load_from_memory, open};
+use image::open;
 use rascii_art::{render_image_to, RenderOptions};
 use regex::Regex;
-use std::{
-    fs::File,
-    io::{BufRead, BufReader},
-};
 
 pub fn parse_ascii(input_file_name: &str, options: &RenderOptions) -> Vec<Vec<ImageData>> {
     let mut ascii_text = String::new();
