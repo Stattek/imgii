@@ -4,12 +4,13 @@ version = "0.3.0"
 edition = "2021"
 
 [dependencies]
-clap = "4.5.28"
+ab_glyph = "0.2.29"
+clap = "4.5.29"
 image = "0.25.5"
+imageproc = "0.25.0"
 num_cpus = "1.16.0"
 rascii_art = { version = "0.4.5", path = "RASCII" }
 rayon = "1.10.0"
 regex = "1.11.1"
-text-to-png = "0.2.0"
 threadpool = "1.8.1"
 unicode-segmentation = "1.12.0"
