@@ -8,7 +8,10 @@ use crate::image_converter::parse_ascii;
 use crate::image_writer::AsciiImageWriter;
 use ascii_image_options::AsciiImageOptions;
 use clap::Parser;
-use rascii_art::{charsets::MINIMAL, RenderOptions};
+use rascii_art::{
+    charsets::{self, from_enum, to_charset_enum},
+    RenderOptions,
+};
 use std::{sync::Arc, time::Instant};
 
 #[derive(Debug, Parser)]
@@ -59,6 +62,11 @@ struct Args {
 
     /// Allows for converting multiple images. Specifies the final input image index.
     final_image_index: Option<u32>,
+
+    /// Characters used to render the image, from transparent to opaque.
+    /// Built-in charsets: block, emoji, default, russian, slight, minimal
+    #[arg(short = 'C', long, default_value = "minimal")]
+    charset: String,
 }
 
 /// The general idea:
@@ -109,14 +117,15 @@ fn main() {
 
     let final_image_index: u32 = args.final_image_index.unwrap_or(1);
 
+    let charset = to_charset_enum(&args.charset).unwrap_or(charsets::Charset::Minimal);
+
     let rascii_options = Arc::from(RenderOptions {
         width: args.width,
         height: args.height,
         colored: true,
         escape_each_colored_char: true,
         invert: args.invert,
-        // TODO: allow specifying charset with an enum/some integer value so it isn't angry about borrows due to multithreading
-        charset: MINIMAL,
+        charset: from_enum(charset),
     });
 
     let ascii_image_options = Arc::from(AsciiImageOptions::new(args.font_size, args.background));
