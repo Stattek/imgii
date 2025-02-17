@@ -1,5 +1,6 @@
-use crate::image_data::ImageData;
-use crate::render_char_to_png::{CHAR_HEIGHT, CHAR_WIDTH};
+use crate::{
+    image_data::ImageData, render_char_to_png::calculate_char_dimensions, AsciiImageOptions,
+};
 use image::GenericImageView;
 use rayon::prelude::*;
 
@@ -187,10 +188,15 @@ impl AsciiImageWriter {
     /// # Returns
     /// - An `Option` containing `Some` `AsciiImageWriter` upon success, or a
     /// `None` upon failure.
-    pub fn from_2d_vec(parts: Vec<Vec<ImageData>>) -> Option<Self> {
+    pub fn from_2d_vec(
+        parts: Vec<Vec<ImageData>>,
+        ascii_image_options: &AsciiImageOptions,
+    ) -> Option<Self> {
         if parts.is_empty() || parts[0].is_empty() {
             return None; // no image to build
         }
+
+        let font_size = ascii_image_options.get_font_size();
 
         let (mut height, mut width) = (0, 0);
         // find out the new canvas size
@@ -216,14 +222,17 @@ impl AsciiImageWriter {
         let mut canvas: image::ImageBuffer<image::Rgba<u8>, Vec<u8>> =
             image::ImageBuffer::new(width, height);
 
+        // calculate character width and height
+        let (char_width, char_height) = calculate_char_dimensions(font_size);
+
         canvas.par_enumerate_pixels_mut().for_each(|(x, y, pixel)| {
             // the index into the row and column from the parts vec
-            let row = y / CHAR_HEIGHT as u32;
-            let column = x / CHAR_WIDTH as u32;
+            let row = y / char_height;
+            let column = x / char_width;
 
             // the index into the inner image that we want to read from
-            let inner_x = x % CHAR_WIDTH as u32;
-            let inner_y = y % CHAR_HEIGHT as u32;
+            let inner_x = x % char_width;
+            let inner_y = y % char_height;
 
             let new_pixel = parts[row as usize][column as usize].get_pixel(inner_x, inner_y);
             // write the pixel we have chosen

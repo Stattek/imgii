@@ -1,7 +1,8 @@
-use image::{imageops, load_from_memory, DynamicImage};
-use text_to_png::{Color, TextRenderer};
-
 use crate::image_data::ImageData;
+use ab_glyph::{FontRef, PxScale};
+use image::{DynamicImage, Rgba, RgbaImage};
+use imageproc::drawing::{draw_text_mut, text_size};
+use std::u8;
 
 /// Represents a colored string to write.
 /// All characters are contiguous and share the same color.
@@ -13,44 +14,43 @@ pub struct ColoredStr {
     pub string: String,
 }
 
-pub const CHAR_FONT_SIZE: i32 = 16;
-pub const CHAR_HEIGHT: i32 = CHAR_FONT_SIZE;
-pub const CHAR_WIDTH: i32 = CHAR_FONT_SIZE / 2;
+pub const DEFAULT_CHAR_FONT_SIZE: u32 = 16;
 
 /// Converts string data into a png
-pub fn str_to_png(data: ColoredStr) -> Result<ImageData, ()> {
-    let renderer = TextRenderer::default();
-    let text_png = renderer.render_text_to_png_data(
-        data.string,
-        CHAR_FONT_SIZE,
-        Color::new(data.red, data.green, data.blue),
+/// Uses `imageproc` to render text.
+pub fn str_to_png(data: ColoredStr, font: &FontRef<'_>, font_size: u32) -> Result<ImageData, ()> {
+    let (char_width, char_height) = calculate_char_dimensions(font_size);
+    // create our image to work with
+    let mut image = RgbaImage::new(char_width, char_height);
+    let scale = PxScale {
+        x: font_size as f32,
+        y: font_size as f32,
+    };
+    draw_text_mut(
+        &mut image,
+        Rgba([data.red, data.green, data.blue, u8::MAX]),
+        0,
+        0,
+        scale,
+        &font,
+        &data.string,
     );
+    let (w, h) = text_size(scale, &font, &data.string);
+    println!("text size: w={}, h={}", w, h);
 
-    match text_png {
-        Ok(text_png_val) => {
-            let loaded_img = load_from_memory(&text_png_val.data);
-            match loaded_img {
-                Ok(mut loaded_img_val) => {
-                    loaded_img_val = loaded_img_val.resize_exact(
-                        CHAR_WIDTH as u32,
-                        CHAR_HEIGHT as u32,
-                        imageops::Nearest,
-                    );
-                    // we can manually read the data from this generated text image into another library `image`
-                    Ok(ImageData::new(loaded_img_val.into_rgba8()))
-                }
-                Err(_) => {
-                    return Err(());
-                }
-            }
-        }
-        Err(_) => {
-            return Err(());
-        }
-    }
+    return Ok(ImageData::new(image));
 }
 
 /// Creates a transparent png in place of a character
-pub fn str_to_transparent_png() -> ImageData {
-    ImageData::new(DynamicImage::new_rgba8(CHAR_WIDTH as u32, CHAR_HEIGHT as u32).into())
+pub fn str_to_transparent_png(font_size: u32) -> ImageData {
+    let (char_width, char_height) = calculate_char_dimensions(font_size);
+    ImageData::new(DynamicImage::new_rgba8(char_width, char_height).into())
+}
+
+/// Calculates character dimensions are returns them
+///
+/// # Returns
+/// (width, height) in a tuple
+pub fn calculate_char_dimensions(font_size: u32) -> (u32, u32) {
+    (font_size / 2, font_size)
 }

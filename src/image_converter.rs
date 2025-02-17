@@ -1,15 +1,28 @@
-use crate::image_data::ImageData;
+use crate::{image_data::ImageData, render_char_to_png::str_to_png, AsciiImageOptions};
 
-use super::render_char_to_png::{str_to_png, str_to_transparent_png, ColoredStr};
+use super::render_char_to_png::{str_to_transparent_png, ColoredStr};
+use ab_glyph::FontRef;
 use image::open;
 use rascii_art::{render_image_to, RenderOptions};
 use regex::Regex;
 
-pub fn parse_ascii(input_file_name: &str, options: &RenderOptions) -> Vec<Vec<ImageData>> {
+// read bytes for the font
+const FONT_BYTES: &[u8] = include_bytes!("../fonts/UbuntuMono.ttf");
+
+pub fn parse_ascii(
+    input_file_name: &str,
+    rascii_options: &RenderOptions,
+    ascii_image_options: &AsciiImageOptions,
+) -> Vec<Vec<ImageData>> {
+    // set up font and font sizes for rendering
+    let font = FontRef::try_from_slice(FONT_BYTES).unwrap();
+    let font_size = ascii_image_options.get_font_size();
+
+    // render the ascii text with RASCII
     let mut ascii_text = String::new();
     let loaded_img =
         open(input_file_name).expect(format!("Could not open file ({})", input_file_name).as_str());
-    render_image_to(&loaded_img, &mut ascii_text, &options)
+    render_image_to(&loaded_img, &mut ascii_text, &rascii_options)
         .expect("Error converting image to ASCII");
 
     // contains lines of images
@@ -55,7 +68,7 @@ pub fn parse_ascii(input_file_name: &str, options: &RenderOptions) -> Vec<Vec<Im
             let generated_png = {
                 if the_str.trim().is_empty() {
                     // create a transparent png for a space
-                    str_to_transparent_png()
+                    str_to_transparent_png(font_size)
                 } else {
                     // render the actual text if it's not empty
                     let colored = ColoredStr {
@@ -65,7 +78,7 @@ pub fn parse_ascii(input_file_name: &str, options: &RenderOptions) -> Vec<Vec<Im
                         string: String::from(the_str),
                     };
 
-                    str_to_png(colored)
+                    str_to_png(colored, &font, font_size)
                         .expect(format!("Could not convert str ({}) to PNG", the_str).as_str())
                 }
             };
