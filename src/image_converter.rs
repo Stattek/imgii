@@ -14,9 +14,8 @@ pub fn parse_ascii(
     rascii_options: &RenderOptions,
     ascii_image_options: &AsciiImageOptions,
 ) -> Vec<Vec<ImageData>> {
-    // set up font and font sizes for rendering
+    // set up font for rendering
     let font = FontRef::try_from_slice(FONT_BYTES).unwrap();
-    let font_size = ascii_image_options.get_font_size();
 
     // render the ascii text with RASCII
     let mut ascii_text = String::new();
@@ -68,7 +67,7 @@ pub fn parse_ascii(
             let generated_png = {
                 if the_str.trim().is_empty() {
                     // create a transparent png for a space
-                    str_to_transparent_png(font_size)
+                    str_to_transparent_png(ascii_image_options)
                 } else {
                     // render the actual text if it's not empty
                     let colored = ColoredStr {
@@ -78,7 +77,7 @@ pub fn parse_ascii(
                         string: String::from(the_str),
                     };
 
-                    str_to_png(colored, &font, font_size)
+                    str_to_png(colored, &font, ascii_image_options)
                         .expect(format!("Could not convert str ({}) to PNG", the_str).as_str())
                 }
             };

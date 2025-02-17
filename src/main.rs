@@ -51,6 +51,12 @@ struct Args {
     #[arg(short, long)]
     invert: bool,
 
+    /// Sets a black background behind the image.
+    ///
+    /// No background by default.
+    #[arg(short, long)]
+    background: bool,
+
     /// Allows for converting multiple images. Specifies the final input image index.
     final_image_index: Option<u32>,
 }
@@ -113,7 +119,7 @@ fn main() {
         charset: MINIMAL,
     });
 
-    let ascii_image_options = Arc::from(AsciiImageOptions::new(args.font_size));
+    let ascii_image_options = Arc::from(AsciiImageOptions::new(args.font_size, args.background));
 
     let starting_time = Instant::now();
     for i in 1..=final_image_index {
