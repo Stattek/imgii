@@ -37,6 +37,11 @@ Options:
   -H, --height <HEIGHT>
           Height of the output image, if not specified, it will be calculated to keep the aspect ratio
 
+  -f, --font-size <FONT_SIZE>
+          The font size of the output image. Larger font sizes incur harsher performance penalties.
+          
+          By default, uses a font size of 16.
+
   -i, --invert
           Inverts the weights of the characters. Useful for white backgrounds
 
@@ -55,8 +60,8 @@ cargo run -- my_image.png my_ascii.png
 
 Original Image:
 
-![107233826](https://github.com/user-attachments/assets/0ac74859-78d2-41d7-96a2-16390ba5d1ec)
+![original_image](./doc/original_img.png)
 
 Output:
 
-![image](https://github.com/user-attachments/assets/667ff6bb-3152-4d18-aa87-dac9aa6b179a)
+![converted_image](./doc/converted_img.png)
