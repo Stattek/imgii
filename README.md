@@ -45,6 +45,11 @@ Options:
   -i, --invert
           Inverts the weights of the characters. Useful for white backgrounds
 
+  -b, --background
+          Sets a black background behind the image.
+          
+          No background by default.
+
   -h, --help
           Print help (see a summary with '-h')
 
