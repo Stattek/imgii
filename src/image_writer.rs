@@ -227,12 +227,12 @@ impl AsciiImageWriter {
 
         canvas.par_enumerate_pixels_mut().for_each(|(x, y, pixel)| {
             // the index into the row and column from the parts vec
-            let row = y / char_height as u32;
-            let column = x / char_width as u32;
+            let row = y / char_height;
+            let column = x / char_width;
 
             // the index into the inner image that we want to read from
-            let inner_x = x % char_width as u32;
-            let inner_y = y % char_height as u32;
+            let inner_x = x % char_width;
+            let inner_y = y % char_height;
 
             let new_pixel = parts[row as usize][column as usize].get_pixel(inner_x, inner_y);
             // write the pixel we have chosen
