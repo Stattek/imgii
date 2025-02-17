@@ -1,7 +1,7 @@
 use crate::image_data::ImageData;
 use ab_glyph::{FontRef, PxScale};
 use image::{DynamicImage, Rgba, RgbaImage};
-use imageproc::drawing::{draw_text_mut, text_size};
+use imageproc::drawing::draw_text_mut;
 use std::u8;
 
 /// Represents a colored string to write.
@@ -35,8 +35,6 @@ pub fn str_to_png(data: ColoredStr, font: &FontRef<'_>, font_size: u32) -> Resul
         &font,
         &data.string,
     );
-    let (w, h) = text_size(scale, &font, &data.string);
-    println!("text size: w={}, h={}", w, h);
 
     return Ok(ImageData::new(image));
 }
