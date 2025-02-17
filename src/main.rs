@@ -1,3 +1,4 @@
+mod ascii_image_options;
 mod image_converter;
 mod image_data;
 mod image_writer;
@@ -5,6 +6,7 @@ mod render_char_to_png;
 
 use crate::image_converter::parse_ascii;
 use crate::image_writer::AsciiImageWriter;
+use ascii_image_options::AsciiImageOptions;
 use clap::Parser;
 use rascii_art::{charsets::MINIMAL, RenderOptions};
 use std::{sync::Arc, time::Instant};
@@ -38,6 +40,13 @@ struct Args {
     #[arg(short = 'H', long)]
     height: Option<u32>,
 
+    /// The font size of the output image.
+    /// Larger font sizes incur harsher performance penalties.
+    ///
+    /// By default, uses a font size of 16.
+    #[arg(short, long)]
+    font_size: Option<u32>,
+
     /// Inverts the weights of the characters. Useful for white backgrounds
     #[arg(short, long)]
     invert: bool,
@@ -50,9 +59,15 @@ struct Args {
 /// Use regex to find the rgb values for each character then print each character into its own image
 /// Then, from each image that is created, we horizontally merge the character images to form a line of text
 /// Finally, from each image containing a line of text, we should vertically merge the images to form a whole image of converted ascii to text.
-fn convert_ascii_to_png(input_file_name: &str, output_file_name: &str, options: &RenderOptions) {
-    let lines = parse_ascii(input_file_name, options);
-    let final_image_writer: Option<AsciiImageWriter> = AsciiImageWriter::from_2d_vec(lines);
+fn convert_ascii_to_png(
+    input_file_name: &str,
+    output_file_name: &str,
+    rascii_options: &RenderOptions,
+    ascii_image_options: &AsciiImageOptions,
+) {
+    let lines = parse_ascii(input_file_name, rascii_options, ascii_image_options);
+    let final_image_writer: Option<AsciiImageWriter> =
+        AsciiImageWriter::from_2d_vec(lines, ascii_image_options);
 
     match final_image_writer {
         Some(writer) => {
@@ -88,27 +103,35 @@ fn main() {
 
     let final_image_index: u32 = args.final_image_index.unwrap_or(1);
 
-    let options = Arc::from(RenderOptions {
+    let rascii_options = Arc::from(RenderOptions {
         width: args.width,
         height: args.height,
         colored: true,
         escape_each_colored_char: true,
         invert: args.invert,
-        // TODO: allow specifying this with an enum/some integer value so it isn't angry about borrows due to multithreading
+        // TODO: allow specifying charset with an enum/some integer value so it isn't angry about borrows due to multithreading
         charset: MINIMAL,
     });
+
+    let ascii_image_options = Arc::from(AsciiImageOptions::new(args.font_size));
 
     let starting_time = Instant::now();
     for i in 1..=final_image_index {
         let input_name_format_arc = Arc::clone(&input_name_format);
         let output_name_format_arc = Arc::clone(&output_name_format);
-        let options_arc = Arc::clone(&options);
+        let rascii_options_arc = Arc::clone(&rascii_options);
+        let ascii_image_options_arc = Arc::clone(&ascii_image_options);
 
         pool.execute(move || {
             // convert to ascii before performing the conversion
             let input_file_name = input_name_format_arc.replace("%d", i.to_string().as_str());
             let output_file_name = output_name_format_arc.replace("%d", i.to_string().as_str());
-            convert_ascii_to_png(&input_file_name, &output_file_name, &options_arc);
+            convert_ascii_to_png(
+                &input_file_name,
+                &output_file_name,
+                &rascii_options_arc,
+                &ascii_image_options_arc,
+            );
         });
     }
     pool.join();
