@@ -1,4 +1,4 @@
-# ascii_to_png
+# rustii
 
 This is a CPU-only image rendering program that renders colored ANSI-encoded ASCII art and saves them in the
 PNG format.
@@ -10,7 +10,7 @@ which this program can handle for you).
 ## Usage
 
 ```text
-Usage: ascii_to_png [OPTIONS] <INPUT_FILENAME> <OUTPUT_FILENAME> [FINAL_IMAGE_INDEX]
+Usage: rustii [OPTIONS] <INPUT_FILENAME> <OUTPUT_FILENAME> [FINAL_IMAGE_INDEX]
 
 Arguments:
   <INPUT_FILENAME>
@@ -49,6 +49,11 @@ Options:
           Sets a black background behind the image.
           
           No background by default.
+
+  -C, --charset <CHARSET>
+          Characters used to render the image, from transparent to opaque. Built-in charsets: block, emoji, default, russian, slight, minimal
+          
+          [default: minimal]
 
   -h, --help
           Print help (see a summary with '-h')
