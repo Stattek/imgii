@@ -63,7 +63,7 @@ Options:
 ```
 
 ```sh
-cargo run --release my_image.png my_ascii.png
+cargo run --release -- my_image.png my_ascii.png
 ```
 
 ## Example Output
