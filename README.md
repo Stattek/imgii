@@ -66,6 +66,13 @@ Options:
 cargo run --release -- my_image.png my_ascii.png
 ```
 
+### Example Usage With Args
+
+```sh
+# converting an image and rendering it to a width of 150, using the block charset
+cargo run --release -- --charset block --width 150 my_image.png my_ascii.png
+```
+
 ## Example Output
 
 Original Image:
