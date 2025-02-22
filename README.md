@@ -1,6 +1,6 @@
 # rustii
 
-This is a CPU-only image rendering program that renders colored ANSI-encoded ASCII art and saves them in the
+This is a CPU-only image rendering program that renders colored ANSI-encoded ASCII art and saves it in the
 PNG format.
 
 This program is multithreaded to make it faster, but it is very CPU-intensive due to not utilizing the GPU.
