@@ -1,9 +1,9 @@
-use crate::{image_data::ImageData, render_char_to_png::str_to_png, AsciiImageOptions};
+use crate::{AsciiImageOptions, image_data::ImageData, render_char_to_png::str_to_png};
 
-use super::render_char_to_png::{str_to_transparent_png, ColoredStr};
+use super::render_char_to_png::{ColoredStr, str_to_transparent_png};
 use ab_glyph::FontRef;
 use image::open;
-use rascii_art::{render_image_to, RenderOptions};
+use rascii_art::{RenderOptions, render_image_to};
 use regex::Regex;
 
 // read bytes for the font
@@ -35,9 +35,12 @@ pub fn parse_ascii(
 
         // we need to find each character that we are going to write
         // we assume that there's only one character for each color
-        let pattern = r"\[38;2;([0-9]+);([0-9]+);([0-9]+)m(.)";
-        let _control_char = '\u{1b}'; // another way to represent the ansi escape character `\033`
-        let re = Regex::new(pattern)
+        let control_char = '\u{1b}'; // represents the ansi escape character `\033`
+        let mut pattern_string = String::from(control_char);
+        let pattern = r"\[38;2;([0-9]+);([0-9]+);([0-9]+)m(.)";
+        pattern_string += pattern;
+
+        let re = Regex::new(&pattern_string)
             .expect(format!("Error creating regex pattern ({})", pattern).as_str());
 
         // create the image for this character

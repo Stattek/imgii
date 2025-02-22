@@ -1,5 +1,5 @@
 use crate::{
-    image_data::ImageData, render_char_to_png::calculate_char_dimensions, AsciiImageOptions,
+    AsciiImageOptions, image_data::ImageData, render_char_to_png::calculate_char_dimensions,
 };
 use image::GenericImageView;
 use rayon::prelude::*;

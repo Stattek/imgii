@@ -9,8 +9,8 @@ use crate::image_writer::AsciiImageWriter;
 use ascii_image_options::AsciiImageOptions;
 use clap::Parser;
 use rascii_art::{
-    charsets::{self, from_enum, to_charset_enum},
     RenderOptions,
+    charsets::{self, from_enum, to_charset_enum},
 };
 use std::{sync::Arc, time::Instant};
 
