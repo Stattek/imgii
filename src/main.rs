@@ -149,6 +149,9 @@ fn main() {
             );
         });
     }
+    let elapsed_time_millis = starting_time.elapsed().as_millis();
+    let elapsed_time_seconds = starting_time.elapsed().as_secs();
+
     pool.join();
     if pool.panic_count() > 0 {
         eprintln!("---FAIL---");
@@ -158,7 +161,6 @@ fn main() {
     }
     println!(
         "Time elapsed: {} seconds / {} milliseconds",
-        starting_time.elapsed().as_secs(),
-        starting_time.elapsed().as_millis()
+        elapsed_time_seconds, elapsed_time_millis
     );
 }
