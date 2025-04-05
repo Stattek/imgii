@@ -4,7 +4,7 @@ use rascii_art::{
     charsets::{self, from_enum, to_charset_enum},
 };
 use rustii::ascii_image_options::AsciiImageOptions;
-use rustii::convert_ascii_to_png;
+use rustii::convert_image_to_ascii_png;
 use std::{sync::Arc, time::Instant};
 
 #[derive(Debug, Parser)]
@@ -106,12 +106,19 @@ fn main() {
             // convert to ascii before performing the conversion
             let input_file_name = input_name_format_arc.replace("%d", i.to_string().as_str());
             let output_file_name = output_name_format_arc.replace("%d", i.to_string().as_str());
-            convert_ascii_to_png(
+            match convert_image_to_ascii_png(
                 &input_file_name,
                 &output_file_name,
                 &rascii_options_arc,
                 &ascii_image_options_arc,
-            );
+            ) {
+                Ok(_) => {
+                    println!("Saved PNG {}", output_file_name);
+                }
+                Err(_) => {
+                    eprintln!("Could not save PNG {}", output_file_name);
+                }
+            }
         });
     }
     let elapsed_time_millis = starting_time.elapsed().as_millis();

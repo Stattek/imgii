@@ -8,30 +8,41 @@ use image_converter::parse_ascii;
 use image_writer::AsciiImageWriter;
 use rascii_art::RenderOptions;
 
-/// The general idea:
-/// Use regex to find the rgb values for each character then print each character into its own image
-/// Then, from each image that is created, we horizontally merge the character images to form a line of text
-/// Finally, from each image containing a line of text, we should vertically merge the images to form a whole image of converted ascii to text.
-pub fn convert_ascii_to_png(
+/// Converts an image (such as a PNG or JPEG) into an ASCII PNG.
+/// It does this by first converting the iamge into colored ASCII art,
+/// then renders the ASCII art as an image.
+///
+/// # Params
+/// - `input_file_name` - The input file name.
+/// - `output_file_name` - The output file name.
+/// - `rascii_options` - The `RASCII` render options.
+/// - `ascii_image_options` - The `rustii` render options
+///
+/// # Returns
+/// - `Err(())` upon error, `Ok(())` otherwise.
+pub fn convert_image_to_ascii_png(
     input_file_name: &str,
     output_file_name: &str,
     rascii_options: &RenderOptions,
     ascii_image_options: &AsciiImageOptions,
-) {
+) -> Result<(), ()> {
     let lines = parse_ascii(input_file_name, rascii_options, ascii_image_options);
     let final_image_writer: Option<AsciiImageWriter> =
         AsciiImageWriter::from_2d_vec(lines, ascii_image_options);
 
     match final_image_writer {
         Some(writer) => {
-            writer
-                .imagebuf
-                .save(&output_file_name)
-                .expect(format!("Could not save image {}", output_file_name).as_str());
-            println!("Saved PNG {}", output_file_name);
+            match writer.imagebuf.save(&output_file_name) {
+                Ok(_) => {
+                    // do nothing, image saved properly
+                }
+                Err(_) => {
+                    // return error, the image could not be saved
+                    return Err(());
+                }
+            }
+            Ok(())
         }
-        None => {
-            panic!("Could not save the image!");
-        }
+        None => Err(()),
     }
 }
