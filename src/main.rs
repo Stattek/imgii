@@ -1,17 +1,10 @@
-mod ascii_image_options;
-mod image_converter;
-mod image_data;
-mod image_writer;
-mod render_char_to_png;
-
-use crate::image_converter::parse_ascii;
-use crate::image_writer::AsciiImageWriter;
-use ascii_image_options::AsciiImageOptions;
 use clap::Parser;
 use rascii_art::{
     RenderOptions,
     charsets::{self, from_enum, to_charset_enum},
 };
+use rustii::ascii_image_options::AsciiImageOptions;
+use rustii::convert_image_to_ascii_png;
 use std::{sync::Arc, time::Instant};
 
 #[derive(Debug, Parser)]
@@ -69,34 +62,6 @@ struct Args {
     charset: String,
 }
 
-/// The general idea:
-/// Use regex to find the rgb values for each character then print each character into its own image
-/// Then, from each image that is created, we horizontally merge the character images to form a line of text
-/// Finally, from each image containing a line of text, we should vertically merge the images to form a whole image of converted ascii to text.
-fn convert_ascii_to_png(
-    input_file_name: &str,
-    output_file_name: &str,
-    rascii_options: &RenderOptions,
-    ascii_image_options: &AsciiImageOptions,
-) {
-    let lines = parse_ascii(input_file_name, rascii_options, ascii_image_options);
-    let final_image_writer: Option<AsciiImageWriter> =
-        AsciiImageWriter::from_2d_vec(lines, ascii_image_options);
-
-    match final_image_writer {
-        Some(writer) => {
-            writer
-                .imagebuf
-                .save(&output_file_name)
-                .expect(format!("Could not save image {}", output_file_name).as_str());
-            println!("Saved PNG {}", output_file_name);
-        }
-        None => {
-            panic!("Could not save the image!");
-        }
-    }
-}
-
 fn main() {
     let pool = threadpool::ThreadPool::new(num_cpus::get());
     let mut args = Args::parse();
@@ -141,16 +106,21 @@ fn main() {
             // convert to ascii before performing the conversion
             let input_file_name = input_name_format_arc.replace("%d", i.to_string().as_str());
             let output_file_name = output_name_format_arc.replace("%d", i.to_string().as_str());
-            convert_ascii_to_png(
+            match convert_image_to_ascii_png(
                 &input_file_name,
                 &output_file_name,
                 &rascii_options_arc,
                 &ascii_image_options_arc,
-            );
+            ) {
+                Ok(_) => {
+                    println!("Saved PNG {}", output_file_name);
+                }
+                Err(_) => {
+                    eprintln!("Could not save PNG {}", output_file_name);
+                }
+            }
         });
     }
-    let elapsed_time_millis = starting_time.elapsed().as_millis();
-    let elapsed_time_seconds = starting_time.elapsed().as_secs();
 
     pool.join();
     if pool.panic_count() > 0 {
@@ -161,6 +131,7 @@ fn main() {
     }
     println!(
         "Time elapsed: {} seconds / {} milliseconds",
-        elapsed_time_seconds, elapsed_time_millis
+        starting_time.elapsed().as_secs(),
+        starting_time.elapsed().as_millis()
     );
 }
