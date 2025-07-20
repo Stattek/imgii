@@ -2,6 +2,7 @@ use clap::Parser;
 use rascii_art::{
     RenderOptions,
     charsets::{self, from_enum, to_charset_enum},
+    convert_string_to_str_vec,
 };
 use rustii::ascii_image_options::AsciiImageOptions;
 use rustii::convert_image_to_ascii_png;
@@ -66,25 +67,6 @@ struct Args {
     /// entirety of the output image.
     #[arg(short, long)]
     char_override: Option<String>,
-}
-
-/// Converts a string into a vector of strings, with a character each for every string.
-/// This is a workaround to deal with the weirdness of UTF-8, since we cannot index into a string
-/// and just grab a character (we could get some garbage byte that doesn't map to a character).
-///
-/// # Params
-/// - `the_str` - The string to convert into a string vector.
-///
-/// # Returns
-/// - A `Vec<String>`, with each element of the vec containing one character each.
-fn convert_string_to_str_vec(the_str: String) -> Vec<String> {
-    let graphemes = the_str.graphemes(true);
-    let mut output_vec = Vec::new();
-    for cur_char in graphemes {
-        output_vec.push(String::from(cur_char));
-    }
-
-    output_vec
 }
 
 fn main() {
