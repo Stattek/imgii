@@ -65,7 +65,7 @@ struct Args {
 
     /// Character override. Ignores the current charset and repeats the desired string for the
     /// entirety of the output image.
-    #[arg(short, long)]
+    #[arg(short = 'o', long)]
     char_override: Option<String>,
 }
 
