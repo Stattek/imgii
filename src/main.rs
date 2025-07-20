@@ -6,6 +6,7 @@ use rascii_art::{
 use rustii::ascii_image_options::AsciiImageOptions;
 use rustii::convert_image_to_ascii_png;
 use std::{sync::Arc, time::Instant};
+use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Debug, Parser)]
 #[command(author, version, about)]
@@ -60,6 +61,31 @@ struct Args {
     /// Built-in charsets: block, emoji, default, russian, slight, minimal
     #[arg(short = 'C', long, default_value = "minimal")]
     charset: String,
+
+    /// Character override. Ignores the current charset and repeats the desired string for the
+    /// entirety of the output image.
+    #[arg(short, long)]
+    char_override: Option<String>,
+}
+
+/// Converts a string into a vector of strings, with a character each for every string.
+/// This is a workaround to deal with the weirdness of UTF-8, since we cannot index into a string
+/// and just grab a character (we could get some garbage byte that doesn't map to a character).
+///
+/// # Params
+/// - `the_str` - The string to convert into a string vector.
+///
+/// # Returns
+/// - A `Vec<String>`, with each element of the vec containing one character each.
+fn convert_string_to_str_vec(the_str: String) -> Vec<String> {
+    let graphemes = the_str.graphemes(true);
+    let mut output_vec = Vec::new();
+    for cur_char in graphemes {
+        dbg!(cur_char);
+        output_vec.push(String::from(cur_char));
+    }
+
+    output_vec
 }
 
 fn main() {
@@ -91,6 +117,11 @@ fn main() {
         escape_each_colored_char: true,
         invert: args.invert,
         charset: from_enum(charset),
+        char_override: if let Some(char_override) = args.char_override {
+            Some(convert_string_to_str_vec(char_override))
+        } else {
+            None
+        },
     });
 
     let ascii_image_options = Arc::from(AsciiImageOptions::new(args.font_size, args.background));
