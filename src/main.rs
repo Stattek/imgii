@@ -81,7 +81,6 @@ fn convert_string_to_str_vec(the_str: String) -> Vec<String> {
     let graphemes = the_str.graphemes(true);
     let mut output_vec = Vec::new();
     for cur_char in graphemes {
-        dbg!(cur_char);
         output_vec.push(String::from(cur_char));
     }
 
