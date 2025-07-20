@@ -1,11 +1,7 @@
 # rustii
 
-This is a CPU-only image rendering program that renders colored ANSI-encoded ASCII art and saves it in the
-PNG format.
-
-This program is multithreaded to make it faster, but it is very CPU-intensive due to not utilizing the GPU.
-Beware of 100% CPU utilization if converting many images in parallel (when converting a batch of images,
-which this program can handle for you).
+Rustii is an image rendering program that renders colored ANSI-encoded ASCII art as a PNG and saves the output file.
+Supports popular image types, such as PNG, JPEG, GIF, WEBP, and more.
 
 ## Building
 
@@ -81,7 +77,7 @@ cargo run --release -- my_image.png my_ascii.png
 ### Example Usage With Args
 
 ```sh
-# converting an image and rendering it to a width of 150, using the block charset
+# renders an image with ASCII characters with a width of 150, using the block charset
 cargo run --release -- --charset block --width 150 my_image.png my_ascii.png
 ```
 
