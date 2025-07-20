@@ -1039,7 +1039,6 @@ dependencies = [
  "rayon",
  "regex",
  "threadpool",
- "unicode-segmentation",
 ]
 
 [[package]]

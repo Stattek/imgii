@@ -13,4 +13,3 @@ rascii_art = { version = "0.4.5", path = "RASCII" }
 rayon = "1.10.0"
 regex = "1.11.1"
 threadpool = "1.8.1"
-unicode-segmentation = "1.12.0"

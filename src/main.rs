@@ -7,7 +7,6 @@ use rascii_art::{
 use rustii::ascii_image_options::AsciiImageOptions;
 use rustii::convert_image_to_ascii_png;
 use std::{sync::Arc, time::Instant};
-use unicode_segmentation::UnicodeSegmentation;
 
 #[derive(Debug, Parser)]
 #[command(author, version, about)]
