@@ -35,7 +35,7 @@ pub fn parse_ascii_to_2d_image_vec(
     ascii_image_options: &AsciiImageOptions,
 ) -> Vec<Vec<ImageData>> {
     // set up font for rendering
-    let font = FontRef::try_from_slice(FONT_BYTES).unwrap();
+    let font = FontRef::try_from_slice(FONT_BYTES).expect("Could not read input font");
     let ascii_text = read_image_as_ascii(input_file_name, rascii_options);
 
     // contains lines of images
