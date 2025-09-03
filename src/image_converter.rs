@@ -11,8 +11,12 @@ const FONT_BYTES: &[u8] = include_bytes!("../fonts/UbuntuMono.ttf");
 
 /// Reads the image as an ASCII string using `RASCII`.
 ///
+/// # Params
 /// * `input_file_name`: The input file name of the image to convert.
 /// * `rascii_options`: The RASCII image options.
+///
+/// # Returns
+/// * `String` containing the colored image data as ASCII, colored using terminal escape sequences.
 fn read_image_as_ascii(input_file_name: &str, rascii_options: &RenderOptions) -> String {
     // render the ascii text with RASCII
     let mut ascii_text = String::new();
@@ -26,9 +30,14 @@ fn read_image_as_ascii(input_file_name: &str, rascii_options: &RenderOptions) ->
 
 /// Reads and converts an image to ASCII and renders it into image.
 ///
+/// # Params
 /// * `input_file_name`: The input file name of the image to convert.
 /// * `rascii_options`: The `RASCII` image options.
 /// * `ascii_image_options`: The `rustii` image options.
+///
+/// # Returns
+/// * `Vec<Vec<ImageData>>`: A 2d `Vec` of images, containing each rendered character from the
+/// image.
 pub fn parse_ascii_to_2d_image_vec(
     input_file_name: &str,
     rascii_options: &RenderOptions,
