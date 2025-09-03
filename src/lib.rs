@@ -4,7 +4,7 @@ pub mod image_data;
 pub mod image_writer;
 pub mod render_char_to_png;
 use ascii_image_options::AsciiImageOptions;
-use image_converter::parse_ascii;
+use image_converter::parse_ascii_to_2d_image_vec;
 use image_writer::AsciiImageWriter;
 use rascii_art::RenderOptions;
 
@@ -26,7 +26,7 @@ pub fn convert_image_to_ascii_png(
     rascii_options: &RenderOptions,
     ascii_image_options: &AsciiImageOptions,
 ) -> Result<(), ()> {
-    let lines = parse_ascii(input_file_name, rascii_options, ascii_image_options);
+    let lines = parse_ascii_to_2d_image_vec(input_file_name, rascii_options, ascii_image_options);
     let final_image_writer: Option<AsciiImageWriter> =
         AsciiImageWriter::from_2d_vec(lines, ascii_image_options);
 

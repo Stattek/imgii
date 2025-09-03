@@ -9,14 +9,11 @@ use regex::Regex;
 // read bytes for the font
 const FONT_BYTES: &[u8] = include_bytes!("../fonts/UbuntuMono.ttf");
 
-pub fn parse_ascii(
-    input_file_name: &str,
-    rascii_options: &RenderOptions,
-    ascii_image_options: &AsciiImageOptions,
-) -> Vec<Vec<ImageData>> {
-    // set up font for rendering
-    let font = FontRef::try_from_slice(FONT_BYTES).unwrap();
-
+/// Reads the image as an ASCII string using `RASCII`.
+///
+/// * `input_file_name`: The input file name of the image to convert.
+/// * `rascii_options`: The RASCII image options.
+fn read_image_as_ascii(input_file_name: &str, rascii_options: &RenderOptions) -> String {
     // render the ascii text with RASCII
     let mut ascii_text = String::new();
     let loaded_img =
@@ -24,10 +21,27 @@ pub fn parse_ascii(
     render_image_to(&loaded_img, &mut ascii_text, &rascii_options)
         .expect("Error converting image to ASCII");
 
+    ascii_text
+}
+
+/// Reads and converts an image to ASCII and renders it into image.
+///
+/// * `input_file_name`: The input file name of the image to convert.
+/// * `rascii_options`: The `RASCII` image options.
+/// * `ascii_image_options`: The `rustii` image options.
+pub fn parse_ascii_to_2d_image_vec(
+    input_file_name: &str,
+    rascii_options: &RenderOptions,
+    ascii_image_options: &AsciiImageOptions,
+) -> Vec<Vec<ImageData>> {
+    // set up font for rendering
+    let font = FontRef::try_from_slice(FONT_BYTES).unwrap();
+    let ascii_text = read_image_as_ascii(input_file_name, rascii_options);
+
     // contains lines of images
     // starting at 0 is the top, first line of the vector
     // inside an inner vec, 0 starts at the leftmost character of the line
-    let mut lines = vec![];
+    let mut image_2d_vec = vec![];
 
     // read every line in the file
     for line in ascii_text.lines() {
@@ -88,8 +102,8 @@ pub fn parse_ascii(
             char_images.push(generated_png);
         }
 
-        lines.push(char_images);
+        image_2d_vec.push(char_images);
     }
 
-    lines
+    image_2d_vec
 }
