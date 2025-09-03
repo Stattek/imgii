@@ -1,4 +1,4 @@
-use crate::{ascii_image_options::AsciiImageOptions, image_data::ImageData};
+use crate::image_helper::{ascii_image_options::AsciiImageOptions, image_data::ImageData};
 use ab_glyph::{FontRef, PxScale};
 use image::{DynamicImage, ImageBuffer, Rgba, RgbaImage};
 use imageproc::drawing::draw_text_mut;

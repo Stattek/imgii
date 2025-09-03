@@ -1,11 +1,8 @@
-pub mod ascii_image_options;
-pub mod image_converter;
-pub mod image_data;
-pub mod image_writer;
-pub mod render_char_to_png;
-use ascii_image_options::AsciiImageOptions;
-use image_converter::parse_ascii_to_2d_image_vec;
-use image_writer::AsciiImageWriter;
+pub mod image_helper;
+use image_helper::{
+    ascii_image_options::AsciiImageOptions, image_converter::parse_ascii_to_2d_image_vec,
+    image_writer::AsciiImageWriter,
+};
 use rascii_art::RenderOptions;
 
 /// Converts an image (such as a PNG or JPEG) into an ASCII PNG.

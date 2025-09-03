@@ -1,4 +1,7 @@
-use crate::{AsciiImageOptions, image_data::ImageData, render_char_to_png::str_to_png};
+use crate::{
+    AsciiImageOptions,
+    image_helper::{image_data::ImageData, render_char_to_png::str_to_png},
+};
 
 use super::render_char_to_png::{ColoredStr, str_to_transparent_png};
 use ab_glyph::FontRef;
@@ -7,7 +10,7 @@ use rascii_art::{RenderOptions, render_image_to};
 use regex::Regex;
 
 // read bytes for the font
-const FONT_BYTES: &[u8] = include_bytes!("../fonts/UbuntuMono.ttf");
+const FONT_BYTES: &[u8] = include_bytes!("../../fonts/UbuntuMono.ttf");
 
 /// Reads the image as an ASCII string using `RASCII`.
 ///
