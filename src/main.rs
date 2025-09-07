@@ -69,7 +69,6 @@ struct Args {
 }
 
 fn main() {
-    let pool = threadpool::ThreadPool::new(num_cpus::get());
     let mut args = Args::parse();
 
     if args.width.is_none() && args.height.is_none() {
@@ -106,6 +105,7 @@ fn main() {
 
     let ascii_image_options = Arc::from(AsciiImageOptions::new(args.font_size, args.background));
 
+    let pool = threadpool::ThreadPool::new(num_cpus::get());
     let starting_time = Instant::now();
     for i in 1..=final_image_index {
         let input_name_format_arc = Arc::clone(&input_name_format);
