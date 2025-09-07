@@ -1,6 +1,6 @@
 [package]
-name = "rustii"
-version = "0.5.0"
+name = "pngii"
+version = "0.5.1"
 edition = "2024"
 
 [dependencies]

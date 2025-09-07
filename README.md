@@ -1,13 +1,13 @@
-# rustii
+# PNGII
 
-Rustii is an image rendering program that renders colored ANSI-encoded ASCII art as a PNG and saves the output file.
+PNGII is an image rendering program that renders colored ANSI-encoded ASCII art as a PNG and saves the output file.
 Supports popular image types, such as PNG, JPEG, GIF, WEBP, and more.
 
 ## Building
 
 ```sh
-git clone https://github.com/Stattek/rustii.git
-cd rustii
+git clone https://github.com/Stattek/PNGII.git
+cd PNGII
 git submodule update --init --recursive
 cargo build
 ```
@@ -15,7 +15,7 @@ cargo build
 ## Usage
 
 ```text
-Usage: rustii [OPTIONS] <INPUT_FILENAME> <OUTPUT_FILENAME> [FINAL_IMAGE_INDEX]
+Usage: PNGII [OPTIONS] <INPUT_FILENAME> <OUTPUT_FILENAME> [FINAL_IMAGE_INDEX]
 
 Arguments:
   <INPUT_FILENAME>

@@ -1,3 +1,4 @@
+#![allow(non_snake_case)]
 pub mod image_helper;
 use image_helper::{
     ascii_image_options::AsciiImageOptions, image_converter::parse_ascii_to_2d_image_vec,
@@ -13,7 +14,7 @@ use rascii_art::RenderOptions;
 /// - `input_file_name` - The input file name.
 /// - `output_file_name` - The output file name.
 /// - `rascii_options` - The `RASCII` render options.
-/// - `ascii_image_options` - The `rustii` render options
+/// - `ascii_image_options` - The `PNGII` render options
 ///
 /// # Returns
 /// - `Err(())` upon error, `Ok(())` otherwise.
