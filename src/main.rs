@@ -1,11 +1,11 @@
 use clap::Parser;
+use pngii::convert_image_to_ascii_png;
+use pngii::image_helper::ascii_image_options::AsciiImageOptions;
 use rascii_art::{
     RenderOptions,
     charsets::{self, from_enum, to_charset_enum},
     convert_string_to_str_vec,
 };
-use rustii::convert_image_to_ascii_png;
-use rustii::image_helper::ascii_image_options::AsciiImageOptions;
 use std::{sync::Arc, time::Instant};
 
 #[derive(Debug, Parser)]

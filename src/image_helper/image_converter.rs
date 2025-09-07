@@ -36,7 +36,7 @@ fn read_image_as_ascii(input_file_name: &str, rascii_options: &RenderOptions) ->
 /// # Params
 /// * `input_file_name`: The input file name of the image to convert.
 /// * `rascii_options`: The `RASCII` image options.
-/// * `ascii_image_options`: The `rustii` image options.
+/// * `ascii_image_options`: The `PNGII` image options.
 ///
 /// # Returns
 /// * `Vec<Vec<ImageData>>`: A 2d `Vec` of images, containing each rendered character from the
