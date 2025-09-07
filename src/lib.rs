@@ -1,5 +1,6 @@
 #![allow(non_snake_case)]
 pub mod image_helper;
+pub mod image_types;
 use image_helper::{
     ascii_image_options::AsciiImageOptions, image_converter::parse_ascii_to_2d_image_vec,
     image_writer::AsciiImageWriter,
