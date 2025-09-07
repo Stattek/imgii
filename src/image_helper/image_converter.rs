@@ -1,3 +1,5 @@
+use std::{fs::File, io::BufReader};
+
 use crate::{
     AsciiImageOptions,
     image_helper::{image_data::ImageData, render_char_to_png::str_to_png},
@@ -5,12 +7,36 @@ use crate::{
 
 use super::render_char_to_png::{ColoredStr, str_to_transparent_png};
 use ab_glyph::FontRef;
-use image::open;
+use image::{AnimationDecoder, DynamicImage, codecs::gif::GifDecoder, open};
 use rascii_art::{RenderOptions, render_image_to};
 use regex::Regex;
 
 // read bytes for the font
 const FONT_BYTES: &[u8] = include_bytes!("../../fonts/UbuntuMono.ttf");
+
+/// Reads a GIF into a `Vec<DynamicImage>` for use with converting to ASCII.
+///
+/// # Params
+/// * `input_file_name`: String slice containing the input file name.
+///
+/// # Returns
+/// `Err()` upon error reading the GIF, `Ok()` otherwise.
+fn read_gif(input_file_name: &str) -> Result<Vec<DynamicImage>, std::io::Error> {
+    let file_in = BufReader::new(File::open(input_file_name)?);
+    let decoder =
+        GifDecoder::new(file_in).expect(format!("Could not read gif {}", input_file_name).as_str());
+
+    // decode all of the frames of the gif and then convert each frame into a DynamicImage
+    let frames = decoder
+        .into_frames()
+        .collect_frames()
+        .expect(format!("Could not decode gif {}", input_file_name).as_str())
+        .into_iter()
+        .map(|value| value.into_buffer().into())
+        .collect();
+
+    Ok(frames)
+}
 
 /// Reads the image as an ASCII string using `RASCII`.
 ///
