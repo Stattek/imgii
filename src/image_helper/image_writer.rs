@@ -1,5 +1,5 @@
 use crate::{
-    AsciiImageOptions,
+    PngiiOptions,
     image_helper::{image_data::ImageData, render_char_to_png::calculate_char_dimensions},
 };
 use rayon::prelude::*;
@@ -28,15 +28,12 @@ impl AsciiImageWriter {
     /// # Returns
     /// - An `Option` containing `Some` `AsciiImageWriter` upon success, or a
     /// `None` upon failure.
-    pub fn from_2d_vec(
-        parts: Vec<Vec<ImageData>>,
-        ascii_image_options: &AsciiImageOptions,
-    ) -> Option<Self> {
+    pub fn from_2d_vec(parts: Vec<Vec<ImageData>>, pngii_options: &PngiiOptions) -> Option<Self> {
         if parts.is_empty() || parts[0].is_empty() {
             return None; // no image to build
         }
 
-        let font_size = ascii_image_options.get_font_size();
+        let font_size = pngii_options.get_font_size();
 
         let (mut height, mut width) = (0, 0);
         // find out the new canvas size

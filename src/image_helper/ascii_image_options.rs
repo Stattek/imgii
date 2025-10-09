@@ -1,7 +1,7 @@
 use crate::image_helper::render_char_to_png::DEFAULT_CHAR_FONT_SIZE;
 
 /// Options for creating the output ASCII PNG.
-pub struct AsciiImageOptions {
+pub struct PngiiOptions {
     /// The font size of the output image.
     font_size: Option<u32>,
 
@@ -11,7 +11,7 @@ pub struct AsciiImageOptions {
     pub background: bool,
 }
 
-impl AsciiImageOptions {
+impl PngiiOptions {
     /// Creates a new image options object.
     pub fn new(font_size: Option<u32>, background: bool) -> Self {
         Self {

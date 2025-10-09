@@ -23,3 +23,17 @@ impl Deref for ImageData {
         &self.0
     }
 }
+
+// Simple conversions to make it possible to convert to and from an ImageData
+// and its inner held type.
+impl From<ImageBuffer<image::Rgba<u8>, Vec<u8>>> for ImageData {
+    fn from(value: ImageBuffer<image::Rgba<u8>, Vec<u8>>) -> Self {
+        Self(value)
+    }
+}
+
+impl Into<ImageBuffer<image::Rgba<u8>, Vec<u8>>> for ImageData {
+    fn into(self) -> ImageBuffer<image::Rgba<u8>, Vec<u8>> {
+        self.0
+    }
+}
