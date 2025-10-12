@@ -1,4 +1,6 @@
 use clap::Parser;
+use clap::builder as clap_builder;
+use clap::builder::styling as clap_styling;
 use pngii::convert_to_ascii_gif;
 use pngii::image_helper::ascii_image_options::PngiiOptions;
 use pngii::image_types::{IMG_TYPES_ARRAY, ImageBatchType};
@@ -12,7 +14,7 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use std::{sync::Arc, time::Instant};
 
 #[derive(Debug, Parser)]
-#[command(author, version, about)]
+#[command(author, version, about, styles=set_color_style())]
 struct Args {
     /// Path to the input image
     ///
@@ -61,7 +63,7 @@ struct Args {
     final_image_index: Option<u32>,
 
     /// Characters used to render the image, from transparent to opaque.
-    /// Built-in charsets: block, emoji, default, russian, slight, minimal
+    /// Built-in charsets: [block, emoji, default, russian, slight, minimal]
     #[arg(short = 'C', long, default_value = "minimal")]
     charset: String,
 
@@ -74,9 +76,78 @@ struct Args {
 // default values for arguments
 const DEFAULT_WIDTH: u32 = 128;
 
+/// Sets the style for clap output.
+fn set_color_style() -> clap_builder::Styles {
+    clap_builder::Styles::styled()
+        .usage(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::Yellow,
+            ))),
+        )
+        .header(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::BrightMagenta,
+            ))),
+        )
+        .literal(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::Magenta,
+            ))),
+        )
+        .error(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::BrightRed,
+            ))),
+        )
+        .context_value(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::BrightCyan,
+            ))),
+        )
+        .context(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::Green,
+            ))),
+        )
+        .invalid(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::Red,
+            ))),
+        )
+        .placeholder(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::Blue,
+            ))),
+        )
+        .valid(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::BrightGreen,
+            ))),
+        )
+}
+
+/// Sets up threads for this program.
+/// NOTE: Must be run only once.
+#[inline(always)]
+fn setup_threads() {
+    let the_num_cpus = num_cpus::get();
+    let err = rayon::ThreadPoolBuilder::new()
+        .num_threads(the_num_cpus)
+        .build_global();
+    match err {
+        Err(err) => {
+            panic!(
+                "Could not create a thread pool for program. Has it been created already? Num threads = {the_num_cpus}. ({err})"
+            );
+        }
+        Ok(_) => {}
+    }
+}
+
 fn main() {
     let mut args = Args::parse();
     env_logger::init();
+    setup_threads();
 
     if args.width.is_none() && args.height.is_none() {
         args.width = Some(DEFAULT_WIDTH);
