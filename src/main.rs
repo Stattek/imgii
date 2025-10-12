@@ -11,6 +11,7 @@ use rascii_art::{
     convert_string_to_str_vec,
 };
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
+use std::sync::Mutex;
 use std::{sync::Arc, time::Instant};
 
 #[derive(Debug, Parser)]
@@ -32,13 +33,15 @@ struct Args {
     /// Example: "output_image%d.png"
     output_filename: String,
 
-    /// Width of the output image. Defaults to 128 if width and height are not
-    /// specified
+    /// Width (in characters) of the output image. To retain the image's original aspect ratio,
+    /// only set this value.
+    ///
+    /// Defaults to 128 if width and height are not specified.
     #[arg(short, long)]
     width: Option<u32>,
 
-    /// Height of the output image, if not specified, it will be calculated to
-    /// keep the aspect ratio
+    /// Height (in characters) of the output image, if not specified, it will be calculated to keep
+    /// the aspect ratio
     #[arg(short = 'H', long)]
     height: Option<u32>,
 
@@ -60,6 +63,7 @@ struct Args {
     background: bool,
 
     /// Allows for converting multiple images. Specifies the final input image index.
+    /// Index starts at 1.
     final_image_index: Option<u32>,
 
     /// Characters used to render the image, from transparent to opaque.
@@ -261,7 +265,8 @@ fn convert_png_batch(
     pngii_options: Arc<PngiiOptions>,
 ) {
     let starting_time = Instant::now();
-    // TODO: check what happens if we get a panic in a thread
+
+    // NOTE: if a single thread panics here, the whole program panics
     (1..=final_image_index).into_par_iter().for_each(|i| {
         let input_name_format_arc = Arc::clone(&input_name_format);
         let output_name_format_arc = Arc::clone(&output_name_format);
@@ -281,7 +286,6 @@ fn convert_png_batch(
                 log::info!("Saved PNG {}", output_file_name);
             }
             Err(_) => {
-                // TODO: does this cause the whole program to crash or just a thread?
                 panic!("Could not save PNG {}", output_file_name);
             }
         };
