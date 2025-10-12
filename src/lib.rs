@@ -76,6 +76,8 @@ pub fn convert_to_ascii_gif(
     // FIXME: the order of these images can be determined by their index, so we might need to
     // handle that. Probably need to sort the image_writers vec
 
+    // FIXME: for some reason, GIFs will freeze right before the end??? Why is this happening?
+
     // create an image writer for each frame
     let image_writers: Vec<(Option<AsciiImageWriter>, FrameMetadata)> = raw_frames
         .into_par_iter()
