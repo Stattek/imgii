@@ -12,20 +12,20 @@ use rascii_art::{RenderOptions, render_image_to};
 use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
 use regex::Regex;
 
+// TODO: Read this font at runtime instead and allow the user to choose
+
 // read bytes for the font
 const FONT_BYTES: &[u8] = include_bytes!("../../fonts/UbuntuMono.ttf");
 
 /// Holds the metadata for a frame that has been deconstructed.
-///
-/// * `image`: The image for this frame.
-/// * `left`: The left value for this frame.
-/// * `top`: The top value for this frame.
-/// * `delay`: The delay for this frame.
-/// * `idx`: The index of this frame. Saved for handling out of order frames due to multithreading.
 pub struct FrameMetadata {
+    /// The left value for this frame.
     pub left: u32,
+    /// The top value for this frame.
     pub top: u32,
+    /// The delay for this frame.
     pub delay: Delay,
+    /// The index of this frame. Saved for handling out of order frames due to multithreading.
     pub idx: usize,
 }
 
@@ -61,15 +61,15 @@ fn read_gif(input_file_name: &str) -> Result<Vec<(DynamicImage, FrameMetadata)>,
         .collect_frames()
         .expect(format!("Could not decode gif {}", input_file_name).as_str())
         .into_iter()
-        .map(|value| {
+        .map(|frame| {
             let idx = cur_idx;
-            let left = value.left();
-            let top = value.top();
-            let delay = value.delay();
+            let left = frame.left();
+            let top = frame.top();
+            let delay = frame.delay();
             cur_idx += 1; // increment the current index
             (
                 // we split this from the frame metadata because we will not want the original image once we have converted it to ASCII
-                value.into_buffer().into(),
+                frame.into_buffer().into(),
                 FrameMetadata::new(left, top, delay, idx),
             )
         })
