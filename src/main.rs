@@ -11,7 +11,6 @@ use rascii_art::{
     convert_string_to_str_vec,
 };
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
-use std::sync::Mutex;
 use std::{sync::Arc, time::Instant};
 
 #[derive(Debug, Parser)]
