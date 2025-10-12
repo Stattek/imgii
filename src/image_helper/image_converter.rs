@@ -1,4 +1,4 @@
-use std::{fs::File, io::BufReader, sync::Mutex};
+use std::{fs::File, io::BufReader};
 
 use crate::{
     PngiiOptions,
@@ -7,9 +7,9 @@ use crate::{
 
 use super::render_char_to_png::{ColoredStr, str_to_transparent_png};
 use ab_glyph::FontRef;
-use image::{AnimationDecoder, Delay, DynamicImage, Frame, codecs::gif::GifDecoder, open};
+use image::{AnimationDecoder, Delay, DynamicImage, codecs::gif::GifDecoder, open};
 use rascii_art::{RenderOptions, render_image_to};
-use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use regex::Regex;
 
 // TODO: Read this font at runtime instead and allow the user to choose
@@ -41,15 +41,17 @@ impl FrameMetadata {
     }
 }
 
-// TODO: document
-/// Reads a GIF into a `Vec<DynamicImage>` for use with converting to ASCII.
+/// Reads a GIF and deconstructs it into an image and its frame metadata for use with converting to
+/// ASCII.
 ///
 /// # Params
 /// * `input_file_name`: String slice containing the input file name.
 ///
 /// # Returns
 /// `Err()` upon error reading the GIF, `Ok()` otherwise.
-fn read_gif(input_file_name: &str) -> Result<Vec<(DynamicImage, FrameMetadata)>, std::io::Error> {
+fn read_deconstructed_gif(
+    input_file_name: &str,
+) -> Result<Vec<(DynamicImage, FrameMetadata)>, std::io::Error> {
     let file_in = BufReader::new(File::open(input_file_name)?);
     let decoder =
         GifDecoder::new(file_in).expect(format!("Could not read gif {}", input_file_name).as_str());
@@ -97,31 +99,40 @@ fn read_image_as_ascii(input_file_name: &str, rascii_options: &RenderOptions) ->
     ascii_text
 }
 
-/// Reads a gif as a list of ASCII strings
-/// TODO: documentation
-fn read_gif_as_ascii(
+/// Reads a gif as a list of ascii strings, with the frame metadata for the related frame.
+///
+/// * `input_file_name`: The input file name.
+/// * `rascii_options`: The RASCII options for converting to ASCII.
+fn read_gif_as_deconstructed_ascii(
     input_file_name: &str,
     rascii_options: &RenderOptions,
 ) -> Vec<(String, FrameMetadata)> {
-    // render the ascii text with RASCII
-    let gif_images = read_gif(input_file_name)
+    // render the ascii text as images
+    let deconstructed_gif = read_deconstructed_gif(input_file_name)
         .expect(format!("Could not read gif {}", input_file_name).as_str());
 
     // PERF: check rayon performance vs. threadpool for gif
     // TODO: this data can probably be out of order due to multithreading, we might need to sort on
     // `idx`
-    gif_images
+
+    // convert the GIF frames to ASCII in parallel
+    deconstructed_gif
         .into_par_iter()
         .map(|(image, deconstructed_frame)| {
             let mut ascii_text = String::new();
-            render_image_to(&image, &mut ascii_text, rascii_options);
+            // this failing for even a single frame of a GIF is not good
+            render_image_to(&image, &mut ascii_text, rascii_options)
+                .expect("Could not convert image to ASCII text");
             (ascii_text, deconstructed_frame)
         })
         .collect()
 }
 
-// TODO: doc
-fn parse_ascii_generic(pngii_options: &PngiiOptions, ascii_text: String) -> Vec<Vec<ImageData>> {
+/// Generic function for parsing and rendering ASCII into an image.
+///
+/// * `pngii_options`: The PNGII options for rendering ASCII.
+/// * `ascii_text`: The ASCII text to render.
+fn render_ascii_generic(pngii_options: &PngiiOptions, ascii_text: String) -> Vec<Vec<ImageData>> {
     // set up font for rendering
     let font = FontRef::try_from_slice(FONT_BYTES).expect("Could not read input font");
 
@@ -201,8 +212,8 @@ fn parse_ascii_generic(pngii_options: &PngiiOptions, ascii_text: String) -> Vec<
 ///
 /// # Params
 /// * `input_file_name`: The input file name of the image to convert.
-/// * `rascii_options`: The `RASCII` image options.
-/// * `pngii_options`: The `PNGII` image options.
+/// * `rascii_options`: The RASCII options for converting to ASCII.
+/// * `pngii_options`: The PNGII options for rendering ASCII.
 ///
 /// # Returns
 /// * `Vec<Vec<ImageData>>`: A 2d `Vec` of images, containing each rendered character from the
@@ -213,26 +224,33 @@ pub fn parse_ascii_to_2d_image_vec(
     pngii_options: &PngiiOptions,
 ) -> Vec<Vec<ImageData>> {
     let ascii_text = read_image_as_ascii(input_file_name, rascii_options);
-    parse_ascii_generic(pngii_options, ascii_text)
+    render_ascii_generic(pngii_options, ascii_text)
 }
 
-// TODO: doc
-pub fn parse_ascii_to_gif_vec(
+/// Reads a GIF and converts it to ASCII. Returns the result containing the image data and frame
+/// metadata required to stitch the images back together. The images returned contain the ASCII
+/// representation of the original GIF.
+///
+/// * `input_file_name`: The input file name.
+/// * `rascii_options`: The RASCII options for converting to ASCII.
+/// * `pngii_options`: The PNGII options for rendering ASCII.
+///
+/// # Returns
+/// A vector containing a tuple of (image data, frame metadata) for a particular frame of the
+/// resulting GIF.
+pub fn read_as_deconstructed_rendered_gif_vec(
     input_file_name: &str,
     rascii_options: &RenderOptions,
     pngii_options: &PngiiOptions,
 ) -> Vec<(Vec<Vec<ImageData>>, FrameMetadata)> {
-    let ascii_text = read_gif_as_ascii(input_file_name, rascii_options);
-
-    // TODO: this can probably cause things to be collected out of order so handle that (probably
-    // want to keep an index along with each frame so we can put them back into order at the end)
+    let ascii_text = read_gif_as_deconstructed_ascii(input_file_name, rascii_options);
 
     // create image data for each frame and keep the frame metadata so we can use it again later
     ascii_text
         .into_par_iter()
         .map(|(image_text, deconstructed_frame)| {
             (
-                parse_ascii_generic(pngii_options, image_text),
+                render_ascii_generic(pngii_options, image_text),
                 deconstructed_frame,
             )
         })

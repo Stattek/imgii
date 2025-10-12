@@ -11,7 +11,7 @@ use image_helper::{
 use rascii_art::RenderOptions;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use crate::image_helper::image_converter::{FrameMetadata, parse_ascii_to_gif_vec};
+use crate::image_helper::image_converter::{FrameMetadata, read_as_deconstructed_rendered_gif_vec};
 
 /// Converts an image (such as a PNG or JPEG) into an ASCII PNG.
 /// It does this by first converting the image into colored ASCII art,
@@ -70,9 +70,11 @@ pub fn convert_to_ascii_gif(
     rascii_options: &RenderOptions,
     pngii_options: &PngiiOptions,
 ) -> Result<(), ()> {
-    let raw_frames = parse_ascii_to_gif_vec(input_file_name, rascii_options, pngii_options);
+    let raw_frames =
+        read_as_deconstructed_rendered_gif_vec(input_file_name, rascii_options, pngii_options);
 
-    // FIXME: again, we might be breaking the order of all these images
+    // FIXME: the order of these images can be determined by their index, so we might need to
+    // handle that. Probably need to sort the image_writers vec
 
     // create an image writer for each frame
     let image_writers: Vec<(Option<AsciiImageWriter>, FrameMetadata)> = raw_frames
@@ -85,7 +87,7 @@ pub fn convert_to_ascii_gif(
         })
         .collect();
 
-    // DEBUG: now we need to bring the gif together frame-by-frame. Check that this is accurate.
+    // FIXME: now we need to bring the gif together frame-by-frame. Check that this is accurate.
     let frames: Vec<Frame> = image_writers
         .into_par_iter()
         .map(|(image_writer, frame_metadata)| match image_writer {
@@ -105,18 +107,22 @@ pub fn convert_to_ascii_gif(
         })
         .collect();
 
-    let file_writer = BufWriter::new(
-        File::create(output_file_name)
-            .expect(format!("The file {output_file_name} already exists!").as_str()),
-    );
+    let out_file = match File::create(output_file_name) {
+        Ok(out_file) => out_file,
+        Err(err) => {
+            panic!("Could not create file {} ({})", output_file_name, err);
+        }
+    };
+    let file_writer = BufWriter::new(out_file);
     let mut gif_encoder = GifEncoder::new(file_writer);
     // encode the frames
     match gif_encoder.encode_frames(frames) {
         Err(err) => {
             // TODO: what does this print even do?
-            eprintln!(
+            log::error!(
                 "Could encode frames for image {} ({})",
-                output_file_name, err
+                output_file_name,
+                err
             );
             Err(())
         }

@@ -1,7 +1,7 @@
 use clap::Parser;
+use pngii::convert_to_ascii_gif;
 use pngii::image_helper::ascii_image_options::PngiiOptions;
 use pngii::image_types::{IMG_TYPES_ARRAY, ImageBatchType};
-use pngii::{convert_to_ascii_gif, image_types};
 use pngii::{convert_to_ascii_png, image_types::OutputImageType};
 use rascii_art::{
     RenderOptions,
@@ -145,11 +145,9 @@ fn main() {
                         &rascii_options,
                         &pngii_options,
                     ) {
-                        Ok(_) => {
-                            println!("Saved PNG {}", output_name_format);
-                        }
+                        Ok(_) => {}
                         Err(_) => {
-                            eprintln!("Could not save PNG {}", output_name_format);
+                            log::error!("Could not save PNG {}", output_name_format);
                         }
                     };
                 }
@@ -158,8 +156,10 @@ fn main() {
         OutputImageType::Gif => {
             match batch_type {
                 ImageBatchType::BatchWithFinalIdx(final_img_idx) => {
+                    // this line was really long, but with a little magic, we can shorten it
                     panic!(
-                        "Cannot convert a batch of GIFs, argument final_img_idx={final_img_idx}"
+                        "Cannot convert a batch of GIFs, argument final_img_idx={final_img_idx}. {}",
+                        "Do not set this argument if intending to convert a GIF."
                     );
                 }
                 ImageBatchType::Single => {
@@ -170,10 +170,10 @@ fn main() {
                         &pngii_options,
                     ) {
                         Ok(_) => {
-                            println!("Saved GIF {}", output_name_format);
+                            log::info!("Saved GIF {}", output_name_format);
                         }
                         Err(_) => {
-                            eprintln!("Could not save GIF {}", output_name_format);
+                            log::error!("Could not save GIF {}", output_name_format);
                         }
                     }
                 }
@@ -207,17 +207,17 @@ fn convert_png_batch(
             &pngii_options_arc,
         ) {
             Ok(_) => {
-                println!("Saved PNG {}", output_file_name);
+                log::info!("Saved PNG {}", output_file_name);
             }
             Err(_) => {
-                // TODO: check this
+                // TODO: does this cause the whole program to crash or just a thread?
                 panic!("Could not save PNG {}", output_file_name);
             }
         };
     });
 
-    println!("---Success!---");
-    println!(
+    log::info!("---Success!---");
+    log::info!(
         "Time elapsed: {} seconds / {} milliseconds",
         starting_time.elapsed().as_secs(),
         starting_time.elapsed().as_millis()
