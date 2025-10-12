@@ -256,6 +256,16 @@ fn main() {
     }
 }
 
+/// Renders a batch of PNGs as ASCII and saves to PNG.
+///
+/// * `final_image_index`: The final image index of input PNGs.
+/// * `input_name_format`: The input name format for input PNGs.
+/// * `output_name_format`: The output name format for saved PNGs.
+/// * `rascii_options`: The RASCII options for generating ASCII text.
+/// * `imgii_options`: The imgii options for rendering ASCII as PNG.
+///
+/// # Panics
+/// If a thread fails to convert an image to ASCII, this will cause the program to panic.
 fn convert_png_batch(
     final_image_index: u32,
     input_name_format: Arc<String>,
