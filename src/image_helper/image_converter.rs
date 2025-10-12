@@ -25,19 +25,12 @@ pub struct FrameMetadata {
     pub top: u32,
     /// The delay for this frame.
     pub delay: Delay,
-    /// The index of this frame. Saved for handling out of order frames due to multithreading.
-    pub idx: usize,
 }
 
 impl FrameMetadata {
     /// Creates a new FrameMetadata.
-    fn new(left: u32, top: u32, delay: Delay, idx: usize) -> Self {
-        Self {
-            left,
-            top,
-            delay,
-            idx,
-        }
+    fn new(left: u32, top: u32, delay: Delay) -> Self {
+        Self { left, top, delay }
     }
 }
 
@@ -53,10 +46,13 @@ fn read_deconstructed_gif(
     input_file_name: &str,
 ) -> Result<Vec<(DynamicImage, FrameMetadata)>, std::io::Error> {
     let file_in = BufReader::new(File::open(input_file_name)?);
-    let decoder =
-        GifDecoder::new(file_in).expect(format!("Could not read gif {}", input_file_name).as_str());
+    let decoder = match GifDecoder::new(file_in) {
+        Ok(decoder) => decoder,
+        Err(err) => {
+            panic!("Could not read gif {input_file_name} ({err})");
+        }
+    };
 
-    let mut cur_idx = 0 as usize;
     // decode all of the frames of the gif and then convert each frame into a DynamicImage
     let frames = decoder
         .into_frames()
@@ -64,15 +60,13 @@ fn read_deconstructed_gif(
         .expect(format!("Could not decode gif {}", input_file_name).as_str())
         .into_iter()
         .map(|frame| {
-            let idx = cur_idx;
             let left = frame.left();
             let top = frame.top();
             let delay = frame.delay();
-            cur_idx += 1; // increment the current index
             (
                 // we split this from the frame metadata because we will not want the original image once we have converted it to ASCII
                 frame.into_buffer().into(),
-                FrameMetadata::new(left, top, delay, idx),
+                FrameMetadata::new(left, top, delay),
             )
         })
         .collect();
@@ -110,10 +104,6 @@ fn read_gif_as_deconstructed_ascii(
     // render the ascii text as images
     let deconstructed_gif = read_deconstructed_gif(input_file_name)
         .expect(format!("Could not read gif {}", input_file_name).as_str());
-
-    // PERF: check rayon performance vs. threadpool for gif
-    // TODO: this data can probably be out of order due to multithreading, we might need to sort on
-    // `idx`
 
     // convert the GIF frames to ASCII in parallel
     deconstructed_gif
