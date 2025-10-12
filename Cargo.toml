@@ -1,15 +1,16 @@
 [package]
 name = "pngii"
-version = "0.5.1"
+version = "0.6.0"
 edition = "2024"
 
 [dependencies]
-ab_glyph = "0.2.29"
-clap = "4.5.35"
-image = "0.25.6"
+ab_glyph = "0.2.32"
+clap = "4.5.48"
+env_logger = "0.11.8"
+image = { version = "0.25.8", features = ["gif"]}
 imageproc = "0.25.0"
-num_cpus = "1.16.0"
+log = "0.4.28"
+num_cpus = "1.17.0"
 rascii_art = { version = "0.4.5", path = "RASCII" }
-rayon = "1.10.0"
-regex = "1.11.1"
-threadpool = "1.8.1"
+rayon = "1.11.0"
+regex = "1.12.1"

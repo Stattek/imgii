@@ -1,15 +1,20 @@
 use clap::Parser;
-use pngii::convert_image_to_ascii_png;
-use pngii::image_helper::ascii_image_options::AsciiImageOptions;
+use clap::builder as clap_builder;
+use clap::builder::styling as clap_styling;
+use pngii::convert_to_ascii_gif;
+use pngii::image_helper::ascii_image_options::PngiiOptions;
+use pngii::image_types::{IMG_TYPES_ARRAY, ImageBatchType};
+use pngii::{convert_to_ascii_png, image_types::OutputImageType};
 use rascii_art::{
     RenderOptions,
     charsets::{self, from_enum, to_charset_enum},
     convert_string_to_str_vec,
 };
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use std::{sync::Arc, time::Instant};
 
 #[derive(Debug, Parser)]
-#[command(author, version, about)]
+#[command(author, version, about, styles=set_color_style())]
 struct Args {
     /// Path to the input image
     ///
@@ -27,13 +32,15 @@ struct Args {
     /// Example: "output_image%d.png"
     output_filename: String,
 
-    /// Width of the output image. Defaults to 128 if width and height are not
-    /// specified
+    /// Width (in characters) of the output image. To retain the image's original aspect ratio,
+    /// only set this value.
+    ///
+    /// Defaults to 128 if width and height are not specified.
     #[arg(short, long)]
     width: Option<u32>,
 
-    /// Height of the output image, if not specified, it will be calculated to
-    /// keep the aspect ratio
+    /// Height (in characters) of the output image, if not specified, it will be calculated to keep
+    /// the aspect ratio
     #[arg(short = 'H', long)]
     height: Option<u32>,
 
@@ -55,10 +62,11 @@ struct Args {
     background: bool,
 
     /// Allows for converting multiple images. Specifies the final input image index.
+    /// Index starts at 1.
     final_image_index: Option<u32>,
 
     /// Characters used to render the image, from transparent to opaque.
-    /// Built-in charsets: block, emoji, default, russian, slight, minimal
+    /// Built-in charsets: [block, emoji, default, russian, slight, minimal]
     #[arg(short = 'C', long, default_value = "minimal")]
     charset: String,
 
@@ -68,79 +76,237 @@ struct Args {
     char_override: Option<String>,
 }
 
+// default values for arguments
+const DEFAULT_WIDTH: u32 = 128;
+
+/// Sets the style for clap output.
+fn set_color_style() -> clap_builder::Styles {
+    clap_builder::Styles::styled()
+        .usage(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::Yellow,
+            ))),
+        )
+        .header(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::BrightMagenta,
+            ))),
+        )
+        .literal(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::Magenta,
+            ))),
+        )
+        .error(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::BrightRed,
+            ))),
+        )
+        .context_value(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::BrightCyan,
+            ))),
+        )
+        .context(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::Green,
+            ))),
+        )
+        .invalid(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::Red,
+            ))),
+        )
+        .placeholder(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::Blue,
+            ))),
+        )
+        .valid(
+            clap_styling::Style::new().fg_color(Some(clap_styling::Color::Ansi(
+                clap_styling::AnsiColor::BrightGreen,
+            ))),
+        )
+}
+
+/// Sets up threads for this program.
+/// NOTE: Must be run only once.
+#[inline(always)]
+fn setup_threads() {
+    let the_num_cpus = num_cpus::get();
+    let err = rayon::ThreadPoolBuilder::new()
+        .num_threads(the_num_cpus)
+        .build_global();
+    match err {
+        Err(err) => {
+            panic!(
+                "Could not create a thread pool for program. Has it been created already? Num threads = {the_num_cpus}. ({err})"
+            );
+        }
+        Ok(_) => {}
+    }
+}
+
 fn main() {
-    let pool = threadpool::ThreadPool::new(num_cpus::get());
     let mut args = Args::parse();
+    env_logger::init();
+    setup_threads();
 
     if args.width.is_none() && args.height.is_none() {
-        args.width = Some(128);
+        args.width = Some(DEFAULT_WIDTH);
     }
 
-    let input_name_format = Arc::new(args.input_filename.clone());
-    // panic if we don't find the .png extension at the end
-    let output_name_format = {
-        if !args.output_filename.ends_with(".png") {
-            panic!("The <output_filename> argument does not end with the .png extension")
-        } else {
-            Arc::new(args.output_filename.clone())
+    let input_name_format = args.input_filename.clone();
+    let output_name_format = args.output_filename.clone();
+
+    // see what image type we are working with and panic if it's unrecognized
+    let image_type = match OutputImageType::from_file_name(&args.output_filename) {
+        Some(image_type) => image_type,
+        None => {
+            panic!(
+                "Could not get output file type from {}, expected one of ({})",
+                args.output_filename,
+                IMG_TYPES_ARRAY.join(", ")
+            );
         }
     };
 
-    let final_image_index: u32 = args.final_image_index.unwrap_or(1);
+    let rascii_charset = to_charset_enum(&args.charset).unwrap_or(charsets::Charset::Minimal);
 
-    let charset = to_charset_enum(&args.charset).unwrap_or(charsets::Charset::Minimal);
-
-    let rascii_options = Arc::from(RenderOptions {
+    // the options for RASCII for converting to ASCII under the hood
+    let rascii_options = RenderOptions {
         width: args.width,
         height: args.height,
         colored: true,
         escape_each_colored_char: true,
         invert: args.invert,
-        charset: from_enum(charset),
+        charset: from_enum(rascii_charset),
         char_override: if let Some(char_override) = args.char_override {
             Some(convert_string_to_str_vec(char_override))
         } else {
             None
         },
-    });
+    };
+    log::debug!("RASCII options = {:?}", rascii_options);
 
-    let ascii_image_options = Arc::from(AsciiImageOptions::new(args.font_size, args.background));
+    // are we doing a batch of images or a single image
+    let batch_type = if let Some(final_image_idx) = args.final_image_index {
+        ImageBatchType::BatchWithFinalIdx(final_image_idx)
+    } else {
+        ImageBatchType::Single
+    };
 
+    // our options for rendering ASCII
+    let pngii_options = PngiiOptions::new(args.font_size, args.background);
+    log::debug!("PNGII options = {:?}", pngii_options);
+
+    // Now, handle the conversion
+    match image_type {
+        OutputImageType::Png => {
+            match batch_type {
+                ImageBatchType::BatchWithFinalIdx(final_image_idx) => {
+                    log::debug!("Converting batch of PNGs...");
+                    // handle converting a batch of images
+                    convert_png_batch(
+                        final_image_idx,
+                        Arc::from(input_name_format),
+                        Arc::from(output_name_format),
+                        Arc::from(rascii_options),
+                        Arc::from(pngii_options),
+                    );
+                }
+                ImageBatchType::Single => {
+                    log::debug!("Converting single PNG...");
+                    match convert_to_ascii_png(
+                        &input_name_format,
+                        &output_name_format,
+                        &rascii_options,
+                        &pngii_options,
+                    ) {
+                        Ok(_) => {}
+                        Err(_) => {
+                            log::error!("Could not save PNG {}", output_name_format);
+                        }
+                    };
+                }
+            };
+        }
+        OutputImageType::Gif => {
+            match batch_type {
+                ImageBatchType::BatchWithFinalIdx(final_img_idx) => {
+                    // this line was really long, but with a little magic, we can shorten it
+                    panic!(
+                        "Cannot convert a batch of GIFs, argument final_img_idx={final_img_idx}. {}",
+                        "Do not set this argument if intending to convert a GIF."
+                    );
+                }
+                ImageBatchType::Single => {
+                    log::debug!("Converting single GIF");
+                    match convert_to_ascii_gif(
+                        &input_name_format,
+                        &output_name_format,
+                        &rascii_options,
+                        &pngii_options,
+                    ) {
+                        Ok(_) => {
+                            log::info!("Saved GIF {}", output_name_format);
+                        }
+                        Err(_) => {
+                            log::error!("Could not save GIF {}", output_name_format);
+                        }
+                    }
+                }
+            };
+        }
+    }
+}
+
+/// Renders a batch of PNGs as ASCII and saves to PNG.
+///
+/// * `final_image_index`: The final image index of input PNGs.
+/// * `input_name_format`: The input name format for input PNGs.
+/// * `output_name_format`: The output name format for saved PNGs.
+/// * `rascii_options`: The RASCII options for generating ASCII text.
+/// * `imgii_options`: The imgii options for rendering ASCII as PNG.
+///
+/// # Panics
+/// If a thread fails to convert an image to ASCII, this will cause the program to panic.
+fn convert_png_batch(
+    final_image_index: u32,
+    input_name_format: Arc<String>,
+    output_name_format: Arc<String>,
+    rascii_options: Arc<RenderOptions<'static>>,
+    pngii_options: Arc<PngiiOptions>,
+) {
     let starting_time = Instant::now();
-    for i in 1..=final_image_index {
+
+    // NOTE: if a single thread panics here, the whole program panics
+    (1..=final_image_index).into_par_iter().for_each(|i| {
         let input_name_format_arc = Arc::clone(&input_name_format);
         let output_name_format_arc = Arc::clone(&output_name_format);
         let rascii_options_arc = Arc::clone(&rascii_options);
-        let ascii_image_options_arc = Arc::clone(&ascii_image_options);
+        let pngii_options_arc = Arc::clone(&pngii_options);
 
-        pool.execute(move || {
-            // convert to ascii before performing the conversion
-            let input_file_name = input_name_format_arc.replace("%d", i.to_string().as_str());
-            let output_file_name = output_name_format_arc.replace("%d", i.to_string().as_str());
-            match convert_image_to_ascii_png(
-                &input_file_name,
-                &output_file_name,
-                &rascii_options_arc,
-                &ascii_image_options_arc,
-            ) {
-                Ok(_) => {
-                    println!("Saved PNG {}", output_file_name);
-                }
-                Err(_) => {
-                    eprintln!("Could not save PNG {}", output_file_name);
-                }
+        // convert to ascii before performing the conversion
+        let input_file_name = input_name_format_arc.replace("%d", i.to_string().as_str());
+        let output_file_name = output_name_format_arc.replace("%d", i.to_string().as_str());
+        match convert_to_ascii_png(
+            &input_file_name,
+            &output_file_name,
+            &rascii_options_arc,
+            &pngii_options_arc,
+        ) {
+            Ok(_) => {
+                log::info!("Saved PNG {}", output_file_name);
             }
-        });
-    }
+            Err(_) => {
+                panic!("Could not save PNG {}", output_file_name);
+            }
+        };
+    });
 
-    pool.join();
-    if pool.panic_count() > 0 {
-        eprintln!("---FAIL---");
-        eprintln!("{} thread(s) panicked!", pool.panic_count());
-    } else {
-        println!("---Success!---");
-    }
-    println!(
+    log::info!("---Success!---");
+    log::info!(
         "Time elapsed: {} seconds / {} milliseconds",
         starting_time.elapsed().as_secs(),
         starting_time.elapsed().as_millis()

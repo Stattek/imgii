@@ -1,4 +1,4 @@
-use crate::image_helper::{ascii_image_options::AsciiImageOptions, image_data::ImageData};
+use crate::image_helper::{ascii_image_options::PngiiOptions, image_data::ImageData};
 use ab_glyph::{FontRef, PxScale};
 use image::{DynamicImage, ImageBuffer, Rgba, RgbaImage};
 use imageproc::drawing::draw_text_mut;
@@ -23,9 +23,9 @@ const BACKGROUND_PIXEL: Rgba<u8> = Rgba([0, 0, 0, u8::MAX]);
 pub fn str_to_png(
     data: ColoredStr,
     font: &FontRef<'_>,
-    ascii_image_options: &AsciiImageOptions,
+    pngii_options: &PngiiOptions,
 ) -> Result<ImageData, ()> {
-    let font_size = ascii_image_options.get_font_size();
+    let font_size = pngii_options.get_font_size();
     let (char_width, char_height) = calculate_char_dimensions(font_size);
     // create our image to work with
     let mut image = RgbaImage::new(char_width, char_height);
@@ -35,7 +35,7 @@ pub fn str_to_png(
     };
 
     // set background if user wants it
-    if ascii_image_options.background {
+    if pngii_options.background {
         set_background(&mut image);
     }
 
@@ -52,6 +52,7 @@ pub fn str_to_png(
     return Ok(ImageData::new(image));
 }
 
+// PERF: this is a costly operation and should probably be removed
 fn set_background(image: &mut ImageBuffer<Rgba<u8>, Vec<u8>>) {
     image.par_enumerate_pixels_mut().for_each(|(_, _, pixel)| {
         // set background
@@ -60,12 +61,16 @@ fn set_background(image: &mut ImageBuffer<Rgba<u8>, Vec<u8>>) {
 }
 
 /// Creates a transparent png in place of a character
-pub fn str_to_transparent_png(ascii_image_options: &AsciiImageOptions) -> ImageData {
-    let (char_width, char_height) = calculate_char_dimensions(ascii_image_options.get_font_size());
+pub fn str_to_transparent_png(pngii_options: &PngiiOptions) -> ImageData {
+    let (char_width, char_height) = calculate_char_dimensions(pngii_options.get_font_size());
     let mut output = DynamicImage::new_rgba8(char_width, char_height).into();
 
+    // TODO: instead of doing a background like this, why don't we create a single image that is a
+    // solid color (or we could do more interesting backgrounds) and overlay the output image over
+    // top of that?
+
     // set background if user wants it
-    if ascii_image_options.background {
+    if pngii_options.background {
         set_background(&mut output);
     }
 
