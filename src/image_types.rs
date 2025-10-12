@@ -50,7 +50,6 @@ impl OutputImageType {
 }
 
 /// Holds whether the program should convert a batch of inputs or just a single.
-#[derive(PartialEq, Eq)]
 pub enum ImageBatchType {
     Single,
     /// Contains the final index for this batch
