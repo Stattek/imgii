@@ -73,11 +73,6 @@ pub fn convert_to_ascii_gif(
     let raw_frames =
         read_as_deconstructed_rendered_gif_vec(input_file_name, rascii_options, pngii_options);
 
-    // FIXME: the order of these images can be determined by their index, so we might need to
-    // handle that. Probably need to sort the image_writers vec
-
-    // FIXME: for some reason, GIFs will freeze right before the end??? Why is this happening?
-
     // create an image writer for each frame
     let image_writers: Vec<(Option<AsciiImageWriter>, FrameMetadata)> = raw_frames
         .into_par_iter()
@@ -89,7 +84,6 @@ pub fn convert_to_ascii_gif(
         })
         .collect();
 
-    // FIXME: now we need to bring the gif together frame-by-frame. Check that this is accurate.
     let frames: Vec<Frame> = image_writers
         .into_par_iter()
         .map(|(image_writer, frame_metadata)| match image_writer {
@@ -128,6 +122,9 @@ pub fn convert_to_ascii_gif(
         }
         Ok(_) => {}
     }
+
+    // FUTURE: the longest part of the GIF creation process is encoding...is there any way to speed
+    // it up?
 
     // encode the frames
     match gif_encoder.encode_frames(frames) {
