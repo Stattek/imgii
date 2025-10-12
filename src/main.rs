@@ -1,7 +1,7 @@
 use clap::Parser;
-use pngii::convert_to_ascii_gif;
 use pngii::image_helper::ascii_image_options::PngiiOptions;
-use pngii::image_types::IMAGE_STR_TYPES;
+use pngii::image_types::{IMG_TYPES_ARRAY, ImageBatchType};
+use pngii::{convert_to_ascii_gif, image_types};
 use pngii::{convert_to_ascii_png, image_types::OutputImageType};
 use rascii_art::{
     RenderOptions,
@@ -10,7 +10,6 @@ use rascii_art::{
 };
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use std::{sync::Arc, time::Instant};
-use threadpool::ThreadPool;
 
 #[derive(Debug, Parser)]
 #[command(author, version, about)]
@@ -72,53 +71,35 @@ struct Args {
     char_override: Option<String>,
 }
 
+// default values for arguments
+const DEFAULT_WIDTH: u32 = 128;
+
 fn main() {
     let mut args = Args::parse();
+    env_logger::init();
 
     if args.width.is_none() && args.height.is_none() {
-        args.width = Some(128);
+        args.width = Some(DEFAULT_WIDTH);
     }
 
     let input_name_format = args.input_filename.clone();
     let output_name_format = args.output_filename.clone();
 
     // see what image type we are working with and panic if it's unrecognized
-    let image_type = {
-        // TODO: this block is silly and should be made better with a function possibly implemented
-        // by the OutputImageType enum
-        if args
-            .output_filename
-            .ends_with(IMAGE_STR_TYPES[OutputImageType::Gif as usize])
-        {
-            OutputImageType::Gif
-        } else if args
-            .output_filename
-            .ends_with(IMAGE_STR_TYPES[OutputImageType::Png as usize])
-        {
-            OutputImageType::Png
-        } else {
-            // build the missing values string
-            let missing_values = {
-                let mut missing_values = String::new();
-
-                // build a comma separated list
-                for (i, image_type) in IMAGE_STR_TYPES.iter().enumerate() {
-                    missing_values += image_type;
-                    if i != IMAGE_STR_TYPES.len() - 1 {
-                        missing_values += ", ";
-                    }
-                }
-                missing_values
-            };
+    let image_type = match OutputImageType::from_file_name(&args.output_filename) {
+        Some(image_type) => image_type,
+        None => {
             panic!(
-                "The <output_filename> argument does not end with one of the accepted extensions ({})",
-                missing_values
-            )
+                "Could not get output file type from {}, expected one of ({})",
+                args.output_filename,
+                IMG_TYPES_ARRAY.join(", ")
+            );
         }
     };
 
     let rascii_charset = to_charset_enum(&args.charset).unwrap_or(charsets::Charset::Minimal);
 
+    // the options for RASCII for converting to ASCII under the hood
     let rascii_options = RenderOptions {
         width: args.width,
         height: args.height,
@@ -133,48 +114,70 @@ fn main() {
         },
     };
 
+    // are we doing a batch of images or a single image
+    let batch_type = if let Some(final_image_idx) = args.final_image_index {
+        ImageBatchType::BatchWithFinalIdx(final_image_idx)
+    } else {
+        ImageBatchType::Single
+    };
+
+    // our options for rendering ASCII
     let pngii_options = PngiiOptions::new(args.font_size, args.background);
+
+    // Now, handle the conversion
     match image_type {
         OutputImageType::Png => {
-            // handle converting a batch of images
-            if let Some(final_image_index) = args.final_image_index {
-                convert_png_batch(
-                    final_image_index,
-                    Arc::from(input_name_format),
-                    Arc::from(output_name_format),
-                    Arc::from(rascii_options),
-                    Arc::from(pngii_options),
-                );
-            } else {
-                match convert_to_ascii_png(
-                    &input_name_format,
-                    &output_name_format,
-                    &rascii_options,
-                    &pngii_options,
-                ) {
-                    Ok(_) => {
-                        println!("Saved PNG {}", output_name_format);
-                    }
-                    Err(_) => {
-                        eprintln!("Could not save PNG {}", output_name_format);
-                    }
-                };
-            }
+            match batch_type {
+                ImageBatchType::BatchWithFinalIdx(final_image_idx) => {
+                    // handle converting a batch of images
+                    convert_png_batch(
+                        final_image_idx,
+                        Arc::from(input_name_format),
+                        Arc::from(output_name_format),
+                        Arc::from(rascii_options),
+                        Arc::from(pngii_options),
+                    );
+                }
+                ImageBatchType::Single => {
+                    match convert_to_ascii_png(
+                        &input_name_format,
+                        &output_name_format,
+                        &rascii_options,
+                        &pngii_options,
+                    ) {
+                        Ok(_) => {
+                            println!("Saved PNG {}", output_name_format);
+                        }
+                        Err(_) => {
+                            eprintln!("Could not save PNG {}", output_name_format);
+                        }
+                    };
+                }
+            };
         }
         OutputImageType::Gif => {
-            match convert_to_ascii_gif(
-                &input_name_format,
-                &output_name_format,
-                &rascii_options,
-                &pngii_options,
-            ) {
-                Ok(_) => {
-                    println!("Saved GIF {}", output_name_format);
+            match batch_type {
+                ImageBatchType::BatchWithFinalIdx(final_img_idx) => {
+                    panic!(
+                        "Cannot convert a batch of GIFs, argument final_img_idx={final_img_idx}"
+                    );
                 }
-                Err(_) => {
-                    eprintln!("Could not save GIF {}", output_name_format);
+                ImageBatchType::Single => {
+                    match convert_to_ascii_gif(
+                        &input_name_format,
+                        &output_name_format,
+                        &rascii_options,
+                        &pngii_options,
+                    ) {
+                        Ok(_) => {
+                            println!("Saved GIF {}", output_name_format);
+                        }
+                        Err(_) => {
+                            eprintln!("Could not save GIF {}", output_name_format);
+                        }
+                    }
                 }
-            }
+            };
         }
     }
 }
