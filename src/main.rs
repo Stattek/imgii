@@ -187,6 +187,7 @@ fn main() {
             None
         },
     };
+    log::debug!("RASCII options = {:?}", rascii_options);
 
     // are we doing a batch of images or a single image
     let batch_type = if let Some(final_image_idx) = args.final_image_index {
@@ -197,12 +198,14 @@ fn main() {
 
     // our options for rendering ASCII
     let pngii_options = PngiiOptions::new(args.font_size, args.background);
+    log::debug!("PNGII options = {:?}", pngii_options);
 
     // Now, handle the conversion
     match image_type {
         OutputImageType::Png => {
             match batch_type {
                 ImageBatchType::BatchWithFinalIdx(final_image_idx) => {
+                    log::debug!("Converting batch of PNGs...");
                     // handle converting a batch of images
                     convert_png_batch(
                         final_image_idx,
@@ -213,6 +216,7 @@ fn main() {
                     );
                 }
                 ImageBatchType::Single => {
+                    log::debug!("Converting single PNG...");
                     match convert_to_ascii_png(
                         &input_name_format,
                         &output_name_format,
@@ -237,6 +241,7 @@ fn main() {
                     );
                 }
                 ImageBatchType::Single => {
+                    log::debug!("Converting single GIF");
                     match convert_to_ascii_gif(
                         &input_name_format,
                         &output_name_format,
