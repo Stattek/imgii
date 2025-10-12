@@ -116,7 +116,19 @@ pub fn convert_to_ascii_gif(
         }
     };
     let file_writer = BufWriter::new(out_file);
+
     let mut gif_encoder = GifEncoder::new(file_writer);
+
+    // TODO: allow user to choose number of repeats?
+    let err = gif_encoder.set_repeat(image::codecs::gif::Repeat::Infinite);
+    match err {
+        Err(err) => {
+            // give a warning if the repeat couldn't be set properly
+            log::warn!("Could not set repeat ({err})");
+        }
+        Ok(_) => {}
+    }
+
     // encode the frames
     match gif_encoder.encode_frames(frames) {
         Err(err) => {
