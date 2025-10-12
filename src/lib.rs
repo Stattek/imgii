@@ -14,8 +14,8 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use crate::image_helper::image_converter::{FrameMetadata, read_as_deconstructed_rendered_gif_vec};
 
 /// Converts an image (such as a PNG or JPEG) into an ASCII PNG.
-/// It does this by first converting the image into colored ASCII art,
-/// then renders the ASCII art as an image.
+/// It does this by first converting the image into colored ASCII text,
+/// then renders the ASCII text as an image.
 ///
 /// # Params
 /// - `input_file_name` - The input file name.
@@ -53,8 +53,8 @@ pub fn convert_to_ascii_png(
 }
 
 /// Converts a GIF into an ASCII GIF.
-/// It does this by first converting the iamge into colored ASCII art,
-/// then renders the ASCII art as an image.
+/// It does this by first converting the image into colored ASCII text,
+/// then renders the ASCII text as an image.
 ///
 /// # Params
 /// - `input_file_name` - The input file name.
