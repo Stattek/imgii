@@ -1,6 +1,7 @@
 use crate::image_helper::render_char_to_png::DEFAULT_CHAR_FONT_SIZE;
 
 /// Options for creating the output ASCII PNG.
+#[derive(Debug)]
 pub struct PngiiOptions {
     /// The font size of the output image.
     font_size: Option<u32>,
