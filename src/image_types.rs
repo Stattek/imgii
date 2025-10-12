@@ -10,7 +10,7 @@ const IMG_TYPE_PNG: &'static str = ".png";
 const IMG_TYPE_GIF: &'static str = ".gif";
 
 /// All image types stored in an array, for iterating through all image types.
-pub const IMG_TYPES_ARRAY: [&'static str; 2] = [IMG_TYPE_PNG, IMG_TYPE_GIF];
+pub const IMG_TYPES_ARRAY: &[&'static str] = &[IMG_TYPE_PNG, IMG_TYPE_GIF];
 
 impl OutputImageType {
     /// Converts a string slice to an `OutputImageType`.
@@ -51,7 +51,8 @@ impl OutputImageType {
 
 /// Holds whether the program should convert a batch of inputs or just a single.
 #[derive(PartialEq, Eq)]
-pub enum OutputSize {
+pub enum ImageBatchType {
     Single,
-    Batch,
+    /// Contains the final index for this batch
+    BatchWithFinalIdx(u32),
 }
