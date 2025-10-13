@@ -5,11 +5,13 @@ Supports popular image types, such as PNG, JPEG, GIF, WEBP, and more.
 
 ## Building
 
+Requires the Rust compiler.
+
 ```bash
 git clone https://github.com/Stattek/imgii.git
 cd imgii
-git submodule update --init --recursive
-cargo build
+# it's recommended to use a release build to run this program
+cargo build --release
 ```
 
 ## Usage
