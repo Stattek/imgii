@@ -11,6 +11,6 @@ image = { version = "0.25.8", features = ["gif"]}
 imageproc = "0.25.0"
 log = "0.4.28"
 num_cpus = "1.17.0"
-rascii_art = { version = "0.4.5", path = "RASCII" }
+rascii_art = { version = "0.4.5", git = "https://github.com/Stattek/RASCII", branch = "master"}
 rayon = "1.11.0"
 regex = "1.12.1"
