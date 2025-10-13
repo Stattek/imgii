@@ -5,7 +5,7 @@ use std::{fs::File, io::BufWriter};
 
 use image::{Frame, codecs::gif::GifEncoder};
 use image_helper::{
-    ascii_image_options::PngiiOptions, image_converter::parse_ascii_to_2d_image_vec,
+    ascii_image_options::ImgiiOptions, image_converter::parse_ascii_to_2d_image_vec,
     image_writer::AsciiImageWriter,
 };
 use rascii_art::RenderOptions;
@@ -21,7 +21,7 @@ use crate::image_helper::image_converter::{FrameMetadata, read_as_deconstructed_
 /// - `input_file_name` - The input file name.
 /// - `output_file_name` - The output file name.
 /// - `rascii_options` - The `RASCII` render options.
-/// - `pngii_options` - The `PNGII` render options
+/// - `imgii_options` - The `imgii` render options
 ///
 /// # Returns
 /// - `Err(())` upon error, `Ok(())` otherwise.
@@ -29,11 +29,11 @@ pub fn convert_to_ascii_png(
     input_file_name: &str,
     output_file_name: &str,
     rascii_options: &RenderOptions,
-    pngii_options: &PngiiOptions,
+    imgii_options: &ImgiiOptions,
 ) -> Result<(), ()> {
-    let lines = parse_ascii_to_2d_image_vec(input_file_name, rascii_options, pngii_options);
+    let lines = parse_ascii_to_2d_image_vec(input_file_name, rascii_options, imgii_options);
     let final_image_writer: Option<AsciiImageWriter> =
-        AsciiImageWriter::from_2d_vec(lines, pngii_options);
+        AsciiImageWriter::from_2d_vec(lines, imgii_options);
 
     match final_image_writer {
         Some(writer) => {
@@ -60,7 +60,7 @@ pub fn convert_to_ascii_png(
 /// - `input_file_name` - The input file name.
 /// - `output_file_name` - The output file name.
 /// - `rascii_options` - The `RASCII` render options.
-/// - `pngii_options` - The `PNGII` render options
+/// - `imgii_options` - The `imgii` render options
 ///
 /// # Returns
 /// - `Err(())` upon error, `Ok(())` otherwise.
@@ -68,17 +68,17 @@ pub fn convert_to_ascii_gif(
     input_file_name: &str,
     output_file_name: &str,
     rascii_options: &RenderOptions,
-    pngii_options: &PngiiOptions,
+    imgii_options: &ImgiiOptions,
 ) -> Result<(), ()> {
     let raw_frames =
-        read_as_deconstructed_rendered_gif_vec(input_file_name, rascii_options, pngii_options);
+        read_as_deconstructed_rendered_gif_vec(input_file_name, rascii_options, imgii_options);
 
     // create an image writer for each frame
     let image_writers: Vec<(Option<AsciiImageWriter>, FrameMetadata)> = raw_frames
         .into_par_iter()
         .map(|(image_data, frame_metadata)| {
             (
-                AsciiImageWriter::from_2d_vec(image_data, pngii_options),
+                AsciiImageWriter::from_2d_vec(image_data, imgii_options),
                 frame_metadata,
             )
         })

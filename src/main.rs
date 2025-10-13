@@ -1,10 +1,10 @@
 use clap::Parser;
 use clap::builder as clap_builder;
 use clap::builder::styling as clap_styling;
-use pngii::convert_to_ascii_gif;
-use pngii::image_helper::ascii_image_options::PngiiOptions;
-use pngii::image_types::{IMG_TYPES_ARRAY, ImageBatchType};
-use pngii::{convert_to_ascii_png, image_types::OutputImageType};
+use imgii::convert_to_ascii_gif;
+use imgii::image_helper::ascii_image_options::ImgiiOptions;
+use imgii::image_types::{IMG_TYPES_ARRAY, ImageBatchType};
+use imgii::{convert_to_ascii_png, image_types::OutputImageType};
 use rascii_art::{
     RenderOptions,
     charsets::{self, from_enum, to_charset_enum},
@@ -197,8 +197,8 @@ fn main() {
     };
 
     // our options for rendering ASCII
-    let pngii_options = PngiiOptions::new(args.font_size, args.background);
-    log::debug!("PNGII options = {:?}", pngii_options);
+    let imgii_options = ImgiiOptions::new(args.font_size, args.background);
+    log::debug!("imgii options = {:?}", imgii_options);
 
     // Now, handle the conversion
     match image_type {
@@ -212,7 +212,7 @@ fn main() {
                         Arc::from(input_name_format),
                         Arc::from(output_name_format),
                         Arc::from(rascii_options),
-                        Arc::from(pngii_options),
+                        Arc::from(imgii_options),
                     );
                 }
                 ImageBatchType::Single => {
@@ -221,7 +221,7 @@ fn main() {
                         &input_name_format,
                         &output_name_format,
                         &rascii_options,
-                        &pngii_options,
+                        &imgii_options,
                     ) {
                         Ok(_) => {}
                         Err(_) => {
@@ -246,7 +246,7 @@ fn main() {
                         &input_name_format,
                         &output_name_format,
                         &rascii_options,
-                        &pngii_options,
+                        &imgii_options,
                     ) {
                         Ok(_) => {
                             log::info!("Saved GIF {}", output_name_format);
@@ -276,7 +276,7 @@ fn convert_png_batch(
     input_name_format: Arc<String>,
     output_name_format: Arc<String>,
     rascii_options: Arc<RenderOptions<'static>>,
-    pngii_options: Arc<PngiiOptions>,
+    imgii_options: Arc<ImgiiOptions>,
 ) {
     let starting_time = Instant::now();
 
@@ -285,7 +285,7 @@ fn convert_png_batch(
         let input_name_format_arc = Arc::clone(&input_name_format);
         let output_name_format_arc = Arc::clone(&output_name_format);
         let rascii_options_arc = Arc::clone(&rascii_options);
-        let pngii_options_arc = Arc::clone(&pngii_options);
+        let imgii_options_arc = Arc::clone(&imgii_options);
 
         // convert to ascii before performing the conversion
         let input_file_name = input_name_format_arc.replace("%d", i.to_string().as_str());
@@ -294,7 +294,7 @@ fn convert_png_batch(
             &input_file_name,
             &output_file_name,
             &rascii_options_arc,
-            &pngii_options_arc,
+            &imgii_options_arc,
         ) {
             Ok(_) => {
                 log::info!("Saved PNG {}", output_file_name);

@@ -1,5 +1,5 @@
 use crate::{
-    PngiiOptions,
+    ImgiiOptions,
     image_helper::{image_data::ImageData, render_char_to_png::calculate_char_dimensions},
 };
 use rayon::prelude::*;
@@ -28,7 +28,7 @@ impl AsciiImageWriter {
     /// # Returns
     /// - An `Option` containing `Some` `AsciiImageWriter` upon success, or a
     /// `None` upon failure.
-    pub fn from_2d_vec(parts: Vec<Vec<ImageData>>, pngii_options: &PngiiOptions) -> Option<Self> {
+    pub fn from_2d_vec(parts: Vec<Vec<ImageData>>, pngii_options: &ImgiiOptions) -> Option<Self> {
         if parts.is_empty() || parts[0].is_empty() {
             return None; // no image to build
         }

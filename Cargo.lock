@@ -525,6 +525,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "imgii"
+version = "0.6.0"
+dependencies = [
+ "ab_glyph",
+ "clap",
+ "env_logger",
+ "image",
+ "imageproc",
+ "log",
+ "num_cpus",
+ "rascii_art",
+ "rayon",
+ "regex",
+]
+
+[[package]]
 name = "imgref"
 version = "1.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -874,22 +890,6 @@ dependencies = [
  "fdeflate",
  "flate2",
  "miniz_oxide",
-]
-
-[[package]]
-name = "pngii"
-version = "0.6.0"
-dependencies = [
- "ab_glyph",
- "clap",
- "env_logger",
- "image",
- "imageproc",
- "log",
- "num_cpus",
- "rascii_art",
- "rayon",
- "regex",
 ]
 
 [[package]]
