@@ -1,7 +1,7 @@
 # imgii
 
 imgii is an image rendering program that renders colored ANSI-encoded ASCII art as a PNG and saves the output file.
-Supports popular image types, such as PNG, JPEG, GIF, WEBP, and more.
+Supports popular image types as input, such as PNG, JPEG, GIF, WEBP, and more.
 
 ## Building
 
@@ -107,11 +107,13 @@ RUST_LOG=info cargo run --release -- --background input_img.png output_ascii_img
 
 ## Supported Output Image Types
 
-imgii can currently output the following filetypes: \[png, gif\].
+imgii can currently output the following filetypes: \[png, gif\]. It supports more input types but
+is able to output images in these formats.
 
 ### Specifying Output Image Type
 
-Specifying an output type can be done simply by changing the filetype in the output filename (in a similar way to `ffmpeg -i input.png output.gif` converting a png to gif).
+Specifying an output type can be done simply by changing the filetype in the output filename
+(in a similar way to `ffmpeg -i input.png output.gif` converting a png to gif).
 
 ```bash
 # Takes an input GIF and imgii will convert to an output GIF
