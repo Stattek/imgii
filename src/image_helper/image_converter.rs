@@ -1,7 +1,7 @@
 use std::{fs::File, io::BufReader};
 
 use crate::{
-    PngiiOptions,
+    ImgiiOptions,
     image_helper::{image_data::ImageData, render_char_to_png::str_to_png},
 };
 
@@ -120,9 +120,9 @@ fn read_gif_as_deconstructed_ascii(
 
 /// Generic function for parsing and rendering ASCII into an image.
 ///
-/// * `pngii_options`: The PNGII options for rendering ASCII.
+/// * `imgii_options`: The imgii options for rendering ASCII.
 /// * `ascii_text`: The ASCII text to render.
-fn render_ascii_generic(pngii_options: &PngiiOptions, ascii_text: String) -> Vec<Vec<ImageData>> {
+fn render_ascii_generic(imgii_options: &ImgiiOptions, ascii_text: String) -> Vec<Vec<ImageData>> {
     // set up font for rendering
     let font = FontRef::try_from_slice(FONT_BYTES).expect("Could not read input font");
 
@@ -174,7 +174,7 @@ fn render_ascii_generic(pngii_options: &PngiiOptions, ascii_text: String) -> Vec
             let generated_png = {
                 if the_str.trim().is_empty() {
                     // create a transparent png for a space
-                    str_to_transparent_png(pngii_options)
+                    str_to_transparent_png(imgii_options)
                 } else {
                     // render the actual text if it's not empty
                     let colored = ColoredStr {
@@ -184,7 +184,7 @@ fn render_ascii_generic(pngii_options: &PngiiOptions, ascii_text: String) -> Vec
                         string: String::from(the_str),
                     };
 
-                    str_to_png(colored, &font, pngii_options)
+                    str_to_png(colored, &font, imgii_options)
                         .expect(format!("Could not convert str ({}) to PNG", the_str).as_str())
                 }
             };
@@ -203,7 +203,7 @@ fn render_ascii_generic(pngii_options: &PngiiOptions, ascii_text: String) -> Vec
 /// # Params
 /// * `input_file_name`: The input file name of the image to convert.
 /// * `rascii_options`: The RASCII options for converting to ASCII.
-/// * `pngii_options`: The PNGII options for rendering ASCII.
+/// * `imgii_options`: The imgii options for rendering ASCII.
 ///
 /// # Returns
 /// * `Vec<Vec<ImageData>>`: A 2d `Vec` of images, containing each rendered character from the
@@ -211,10 +211,10 @@ fn render_ascii_generic(pngii_options: &PngiiOptions, ascii_text: String) -> Vec
 pub fn parse_ascii_to_2d_image_vec(
     input_file_name: &str,
     rascii_options: &RenderOptions,
-    pngii_options: &PngiiOptions,
+    imgii_options: &ImgiiOptions,
 ) -> Vec<Vec<ImageData>> {
     let ascii_text = read_image_as_ascii(input_file_name, rascii_options);
-    render_ascii_generic(pngii_options, ascii_text)
+    render_ascii_generic(imgii_options, ascii_text)
 }
 
 /// Reads a GIF and converts it to ASCII. Returns the result containing the image data and frame
@@ -223,7 +223,7 @@ pub fn parse_ascii_to_2d_image_vec(
 ///
 /// * `input_file_name`: The input file name.
 /// * `rascii_options`: The RASCII options for converting to ASCII.
-/// * `pngii_options`: The PNGII options for rendering ASCII.
+/// * `imgii_options`: The imgii options for rendering ASCII.
 ///
 /// # Returns
 /// A vector containing a tuple of (image data, frame metadata) for a particular frame of the
@@ -231,7 +231,7 @@ pub fn parse_ascii_to_2d_image_vec(
 pub fn read_as_deconstructed_rendered_gif_vec(
     input_file_name: &str,
     rascii_options: &RenderOptions,
-    pngii_options: &PngiiOptions,
+    imgii_options: &ImgiiOptions,
 ) -> Vec<(Vec<Vec<ImageData>>, FrameMetadata)> {
     let ascii_text = read_gif_as_deconstructed_ascii(input_file_name, rascii_options);
 
@@ -240,7 +240,7 @@ pub fn read_as_deconstructed_rendered_gif_vec(
         .into_par_iter()
         .map(|(image_text, deconstructed_frame)| {
             (
-                render_ascii_generic(pngii_options, image_text),
+                render_ascii_generic(imgii_options, image_text),
                 deconstructed_frame,
             )
         })

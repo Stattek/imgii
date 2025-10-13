@@ -1,5 +1,5 @@
 [package]
-name = "pngii"
+name = "imgii"
 version = "0.6.0"
 edition = "2024"
 
