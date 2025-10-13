@@ -1020,6 +1020,7 @@ dependencies = [
 [[package]]
 name = "rascii_art"
 version = "0.4.5"
+source = "git+https://github.com/Stattek/RASCII?branch=master#b101ace1bf36af0b744dd0d6234f0fe0db9ba61c"
 dependencies = [
  "ansi_term",
  "clap",
