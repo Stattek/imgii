@@ -1,4 +1,3 @@
-#![allow(non_snake_case)]
 pub mod image_helper;
 pub mod image_types;
 use std::{fs::File, io::BufWriter};

@@ -9,15 +9,17 @@ pub struct AsciiImageWriter {
     pub imagebuf: ImageData,
 }
 
-impl AsciiImageWriter {
-    /// Creates a new image writer containing a single image
-    #[allow(unused)]
-    pub fn from(the_image: ImageData) -> Self {
+impl From<ImageData> for AsciiImageWriter {
+    fn from(the_image: ImageData) -> Self {
         Self {
             imagebuf: the_image,
         }
     }
+}
 
+impl AsciiImageWriter {
+    /// Creates a new image writer containing a single image
+    #[allow(unused)]
     /// Builds a new image from a 2d `Vec` of image parts.
     ///
     /// # Params

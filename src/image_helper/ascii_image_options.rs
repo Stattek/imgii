@@ -23,7 +23,7 @@ impl ImgiiOptions {
 
     /// Gets the font size if present, otherwise gives back the default
     /// font size.
-    pub fn get_font_size(&self) -> u32 {
+    pub fn font_size(&self) -> u32 {
         self.font_size.unwrap_or(DEFAULT_CHAR_FONT_SIZE)
     }
 }
