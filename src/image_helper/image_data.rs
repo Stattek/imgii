@@ -4,7 +4,7 @@ use image::ImageBuffer;
 
 /// Represents the image data to work with.
 /// Holds an `ImageBuffer` with the image data.
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct ImageData(ImageBuffer<image::Rgba<u8>, Vec<u8>>);
 
 impl ImageData {

@@ -18,6 +18,7 @@ use regex::Regex;
 const FONT_BYTES: &[u8] = include_bytes!("../../fonts/UbuntuMono.ttf");
 
 /// Holds the metadata for a frame that has been deconstructed.
+#[derive(Debug)]
 pub struct FrameMetadata {
     /// The left value for this frame.
     pub left: u32,

@@ -4,7 +4,7 @@ use crate::{
 };
 use rayon::prelude::*;
 
-#[derive(Clone)]
+#[derive(Debug, Clone)]
 pub struct AsciiImageWriter {
     pub imagebuf: ImageData,
 }
