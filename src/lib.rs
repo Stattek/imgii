@@ -32,7 +32,7 @@ pub fn convert_to_ascii_png(
 ) -> Result<(), ()> {
     let lines = parse_ascii_to_2d_image_vec(input_file_name, rascii_options, imgii_options);
     let final_image_writer: Option<AsciiImageWriter> =
-        AsciiImageWriter::from_2d_vec(lines, imgii_options);
+        AsciiImageWriter::new_from_2d_vec(lines, imgii_options);
 
     match final_image_writer {
         Some(writer) => {
@@ -77,7 +77,7 @@ pub fn convert_to_ascii_gif(
         .into_par_iter()
         .map(|(image_data, frame_metadata)| {
             (
-                AsciiImageWriter::from_2d_vec(image_data, imgii_options),
+                AsciiImageWriter::new_from_2d_vec(image_data, imgii_options),
                 frame_metadata,
             )
         })

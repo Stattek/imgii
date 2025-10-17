@@ -32,7 +32,10 @@ impl AsciiImageWriter {
     /// # Returns
     /// - An `Option` containing `Some` `AsciiImageWriter` upon success, or a
     ///   `None` upon failure.
-    pub fn from_2d_vec(parts: Vec<Vec<ImageData>>, pngii_options: &ImgiiOptions) -> Option<Self> {
+    pub fn new_from_2d_vec(
+        parts: Vec<Vec<ImageData>>,
+        pngii_options: &ImgiiOptions,
+    ) -> Option<Self> {
         if parts.is_empty() || parts[0].is_empty() {
             return None; // no image to build
         }
