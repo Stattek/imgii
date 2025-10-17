@@ -185,7 +185,9 @@ fn main() {
 
     // are we doing a batch of images or a single image
     let batch_type = if let Some(final_image_idx) = args.final_image_index {
-        ImageBatchType::BatchWithFinalIdx(final_image_idx)
+        ImageBatchType::Batch {
+            final_index: final_image_idx,
+        }
     } else {
         ImageBatchType::Single
     };
@@ -198,7 +200,9 @@ fn main() {
     match image_type {
         OutputImageType::Png => {
             match batch_type {
-                ImageBatchType::BatchWithFinalIdx(final_image_idx) => {
+                ImageBatchType::Batch {
+                    final_index: final_image_idx,
+                } => {
                     log::debug!("Converting batch of PNGs...");
                     // handle converting a batch of images
                     convert_png_batch(
