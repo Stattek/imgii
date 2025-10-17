@@ -10,6 +10,7 @@ pub struct AsciiImageWriter {
 }
 
 impl From<ImageData> for AsciiImageWriter {
+    /// Creates an image writer from image data.
     fn from(the_image: ImageData) -> Self {
         Self {
             imagebuf: the_image,
@@ -35,7 +36,7 @@ impl AsciiImageWriter {
             return None; // no image to build
         }
 
-        let font_size = pngii_options.get_font_size();
+        let font_size = pngii_options.font_size();
 
         let (mut height, mut width) = (0, 0);
         // find out the new canvas size
