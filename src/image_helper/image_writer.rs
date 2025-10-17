@@ -1,6 +1,9 @@
 use crate::{
     ImgiiOptions,
-    image_helper::{image_data::ImageData, render_char_to_png::calculate_char_dimensions},
+    image_helper::{
+        image_data::{ImageData, InternalImage},
+        render_char_to_png::calculate_char_dimensions,
+    },
 };
 use rayon::prelude::*;
 
@@ -23,12 +26,12 @@ impl AsciiImageWriter {
     ///
     /// # Params
     /// - `parts` - A 2d `Vec` of images, with the `parts` array containing the rows (starting from 0
-    /// as the top of the image) and the inner array containing the columns (starting from 0 as
-    /// the leftmost part of the image).
+    ///   as the top of the image) and the inner array containing the columns (starting from 0 as
+    ///   the leftmost part of the image).
     ///
     /// # Returns
     /// - An `Option` containing `Some` `AsciiImageWriter` upon success, or a
-    /// `None` upon failure.
+    ///   `None` upon failure.
     pub fn from_2d_vec(parts: Vec<Vec<ImageData>>, pngii_options: &ImgiiOptions) -> Option<Self> {
         if parts.is_empty() || parts[0].is_empty() {
             return None; // no image to build
@@ -38,27 +41,24 @@ impl AsciiImageWriter {
 
         let (mut height, mut width) = (0, 0);
         // find out the new canvas size
-        let mut cur_line = 0;
-        for line in &parts {
+        for (cur_line, line) in parts.iter().enumerate() {
             // assume that every image has the same height and width
             if !line.is_empty() {
-                height += line[0].height();
+                height += line[0].as_buffer().height();
                 // calculate the width
-                width = line[0].width() * line.len() as u32;
+                width = line[0].as_buffer().width() * line.len() as u32;
             } else {
+                // TODO: this print, along with all others should be removed
                 eprintln!(
                     "Skipped an empty line of images at line {}! Malformed data?",
                     cur_line
                 );
                 return None;
             }
-
-            cur_line += 1;
         }
 
         // create the new canvas to write to
-        let mut canvas: image::ImageBuffer<image::Rgba<u8>, Vec<u8>> =
-            image::ImageBuffer::new(width, height);
+        let mut canvas: InternalImage = image::ImageBuffer::new(width, height);
 
         // calculate character width and height
         let (char_width, char_height) = calculate_char_dimensions(font_size);
@@ -72,7 +72,9 @@ impl AsciiImageWriter {
             let inner_x = x % char_width;
             let inner_y = y % char_height;
 
-            let new_pixel = parts[row as usize][column as usize].get_pixel(inner_x, inner_y);
+            let new_pixel = parts[row as usize][column as usize]
+                .as_buffer()
+                .get_pixel(inner_x, inner_y);
             // write the pixel we have chosen
             *pixel = *new_pixel;
         });

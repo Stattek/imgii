@@ -58,7 +58,7 @@ fn read_deconstructed_gif(
     let frames = decoder
         .into_frames()
         .collect_frames()
-        .expect(format!("Could not decode gif {}", input_file_name).as_str())
+        .unwrap_or_else(|_| panic!("Could not decode gif {}", input_file_name))
         .into_iter()
         .map(|frame| {
             let left = frame.left();
@@ -86,10 +86,10 @@ fn read_deconstructed_gif(
 fn read_image_as_ascii(input_file_name: &str, rascii_options: &RenderOptions) -> String {
     // render the ascii text with RASCII
     let mut ascii_text = String::new();
-    let loaded_img =
-        open(input_file_name).expect(format!("Could not open file ({})", input_file_name).as_str());
-    render_image_to(&loaded_img, &mut ascii_text, &rascii_options)
-        .expect("Error converting image to ASCII");
+    let loaded_img = open(input_file_name)
+        .unwrap_or_else(|_| panic!("Could not open file ({})", input_file_name));
+    render_image_to(&loaded_img, &mut ascii_text, rascii_options)
+        .unwrap_or_else(|_| panic!("Error converting image {} to ASCII", input_file_name));
 
     ascii_text
 }
@@ -104,7 +104,7 @@ fn read_gif_as_deconstructed_ascii(
 ) -> Vec<(String, FrameMetadata)> {
     // render the ascii text as images
     let deconstructed_gif = read_deconstructed_gif(input_file_name)
-        .expect(format!("Could not read gif {}", input_file_name).as_str());
+        .unwrap_or_else(|_| panic!("Could not read gif {}", input_file_name));
 
     // convert the GIF frames to ASCII in parallel
     deconstructed_gif
@@ -146,31 +146,28 @@ fn render_ascii_generic(imgii_options: &ImgiiOptions, ascii_text: String) -> Vec
         // TODO: if multiple threads are using this same regex object, maybe we could make it a
         // static global or compile it early so we can reuse it? Maybe as a "parser" object?
         let re = Regex::new(&pattern_string)
-            .expect(format!("Error creating regex pattern ({})", pattern).as_str());
+            .unwrap_or_else(|_| panic!("Error creating regex pattern ({})", pattern));
 
         // create the image for this character
         for (full_str, [r, g, b, the_str]) in re.captures_iter(line).map(|c| c.extract()) {
-            let red = r.parse::<u8>().expect(
-                format!(
+            let red = r.parse::<u8>().unwrap_or_else(|_| {
+                panic!(
                     "Error parsing red from string: ({}), full string: ({}). Improper encoding?",
                     r, full_str
                 )
-                .as_str(),
-            );
-            let green = g.parse::<u8>().expect(
-                format!(
+            });
+            let green = g.parse::<u8>().unwrap_or_else(|_| {
+                panic!(
                     "Error parsing green from string: ({}), full string: ({}). Improper encoding?",
                     g, full_str
                 )
-                .as_str(),
-            );
-            let blue = b.parse::<u8>().expect(
-                format!(
+            });
+            let blue = b.parse::<u8>().unwrap_or_else(|_| {
+                panic!(
                     "Error parsing blue from string ({}), full string ({}). Improper encoding?",
                     b, full_str
                 )
-                .as_str(),
-            );
+            });
 
             let generated_png = {
                 if the_str.trim().is_empty() {
@@ -186,7 +183,7 @@ fn render_ascii_generic(imgii_options: &ImgiiOptions, ascii_text: String) -> Vec
                     };
 
                     str_to_png(colored, &font, imgii_options)
-                        .expect(format!("Could not convert str ({}) to PNG", the_str).as_str())
+                        .unwrap_or_else(|_| panic!("Could not convert str ({}) to PNG", the_str))
                 }
             };
 
@@ -208,7 +205,7 @@ fn render_ascii_generic(imgii_options: &ImgiiOptions, ascii_text: String) -> Vec
 ///
 /// # Returns
 /// * `Vec<Vec<ImageData>>`: A 2d `Vec` of images, containing each rendered character from the
-/// image.
+///   image.
 pub fn parse_ascii_to_2d_image_vec(
     input_file_name: &str,
     rascii_options: &RenderOptions,

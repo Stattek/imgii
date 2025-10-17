@@ -137,13 +137,10 @@ fn setup_threads() {
     let err = rayon::ThreadPoolBuilder::new()
         .num_threads(the_num_cpus)
         .build_global();
-    match err {
-        Err(err) => {
-            panic!(
-                "Could not create a thread pool for program. Has it been created already? Num threads = {the_num_cpus}. ({err})"
-            );
-        }
-        Ok(_) => {}
+    if let Err(err) = err {
+        panic!(
+            "Could not create a thread pool for program. Has it been created already? Num threads = {the_num_cpus}. ({err})"
+        );
     }
 }
 
@@ -181,11 +178,8 @@ fn main() {
         escape_each_colored_char: true,
         invert: args.invert,
         charset: from_enum(rascii_charset),
-        char_override: if let Some(char_override) = args.char_override {
-            Some(convert_string_to_str_vec(char_override))
-        } else {
-            None
-        },
+        // converts the string to a string vec if it is Some, otherwise stores as None
+        char_override: args.char_override.map(convert_string_to_str_vec),
     };
     log::debug!("RASCII options = {:?}", rascii_options);
 

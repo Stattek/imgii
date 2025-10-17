@@ -36,7 +36,7 @@ pub fn convert_to_ascii_png(
 
     match final_image_writer {
         Some(writer) => {
-            match writer.imagebuf.save(&output_file_name) {
+            match writer.imagebuf.as_buffer().save(&output_file_name) {
                 Ok(_) => {
                     // do nothing, image saved properly
                 }
@@ -96,10 +96,7 @@ pub fn convert_to_ascii_gif(
             )),
             None => None,
         })
-        .filter_map(|frame| match frame {
-            Some(frame) => Some(frame),
-            None => None,
-        })
+        .filter_map(|frame| frame)
         .collect();
 
     let out_file = match File::create(output_file_name) {
@@ -114,12 +111,9 @@ pub fn convert_to_ascii_gif(
 
     // TODO: allow user to choose number of repeats?
     let err = gif_encoder.set_repeat(image::codecs::gif::Repeat::Infinite);
-    match err {
-        Err(err) => {
-            // give a warning if the repeat couldn't be set properly
-            log::warn!("Could not set repeat ({err})");
-        }
-        Ok(_) => {}
+    if let Err(err) = err {
+        // give a warning if the repeat couldn't be set properly
+        log::warn!("Could not set repeat ({err})");
     }
 
     // FUTURE: the longest part of the GIF creation process is encoding...is there any way to speed

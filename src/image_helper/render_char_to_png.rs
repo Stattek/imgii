@@ -3,7 +3,6 @@ use ab_glyph::{FontRef, PxScale};
 use image::{DynamicImage, ImageBuffer, Rgba, RgbaImage};
 use imageproc::drawing::draw_text_mut;
 use rayon::prelude::*;
-use std::u8;
 
 /// Represents a colored string to write.
 /// All characters are contiguous and share the same color.
@@ -49,7 +48,7 @@ pub fn str_to_png(
         &data.string,
     );
 
-    return Ok(ImageData::new(image));
+    Ok(ImageData::new(image))
 }
 
 // PERF: this is a costly operation and should probably be removed
