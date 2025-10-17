@@ -19,8 +19,6 @@ impl From<ImageData> for AsciiImageWriter {
 }
 
 impl AsciiImageWriter {
-    /// Creates a new image writer containing a single image
-    #[allow(unused)]
     /// Builds a new image from a 2d `Vec` of image parts.
     ///
     /// # Params

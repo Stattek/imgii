@@ -7,11 +7,11 @@ pub enum OutputImageType {
 }
 
 // image type string defines
-const IMG_TYPE_PNG: &'static str = ".png";
-const IMG_TYPE_GIF: &'static str = ".gif";
+const IMG_TYPE_PNG: &str = ".png";
+const IMG_TYPE_GIF: &str = ".gif";
 
 /// All image types stored in an array, for iterating through all image types.
-pub const IMG_TYPES_ARRAY: &[&'static str] = &[IMG_TYPE_PNG, IMG_TYPE_GIF];
+pub const IMG_TYPES_ARRAY: &[&str] = &[IMG_TYPE_PNG, IMG_TYPE_GIF];
 
 impl OutputImageType {
     /// Converts a string slice to an `OutputImageType`.

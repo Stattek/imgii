@@ -25,7 +25,7 @@ pub fn str_to_png(
     font: &FontRef<'_>,
     imgii_options: &ImgiiOptions,
 ) -> Result<ImageData, ()> {
-    let font_size = imgii_options.get_font_size();
+    let font_size = imgii_options.font_size();
     let (char_width, char_height) = calculate_char_dimensions(font_size);
     // create our image to work with
     let mut image = RgbaImage::new(char_width, char_height);
@@ -62,7 +62,7 @@ fn set_background(image: &mut ImageBuffer<Rgba<u8>, Vec<u8>>) {
 
 /// Creates a transparent png in place of a character
 pub fn str_to_transparent_png(imgii_options: &ImgiiOptions) -> ImageData {
-    let (char_width, char_height) = calculate_char_dimensions(imgii_options.get_font_size());
+    let (char_width, char_height) = calculate_char_dimensions(imgii_options.font_size());
     let mut output = DynamicImage::new_rgba8(char_width, char_height).into();
 
     // TODO: instead of doing a background like this, why don't we create a single image that is a
