@@ -4,13 +4,15 @@ use std::{fs::File, io::BufWriter};
 
 use image::{Frame, codecs::gif::GifEncoder};
 use image_helper::{
-    ascii_image_options::ImgiiOptions, image_converter::parse_ascii_to_2d_image_vec,
+    ascii_image_options::ImgiiOptions, image_converters::png_converter::parse_ascii_to_2d_png_vec,
     image_writer::AsciiImageWriter,
 };
 use rascii_art::RenderOptions;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use crate::image_helper::image_converter::{FrameMetadata, read_as_deconstructed_rendered_gif_vec};
+use crate::image_helper::image_converters::gif_converter::{
+    FrameMetadata, read_as_deconstructed_rendered_gif_vec,
+};
 
 /// Converts an image (such as a PNG or JPEG) into an ASCII PNG.
 /// It does this by first converting the image into colored ASCII text,
@@ -30,7 +32,7 @@ pub fn convert_to_ascii_png(
     rascii_options: &RenderOptions,
     imgii_options: &ImgiiOptions,
 ) -> Result<(), ()> {
-    let lines = parse_ascii_to_2d_image_vec(input_file_name, rascii_options, imgii_options);
+    let lines = parse_ascii_to_2d_png_vec(input_file_name, rascii_options, imgii_options);
     let final_image_writer: Option<AsciiImageWriter> =
         AsciiImageWriter::new_from_2d_vec(lines, imgii_options);
 
@@ -90,9 +92,9 @@ pub fn convert_to_ascii_gif(
             // can then use the image crate to build a new GIF from the new image!
             Some(image_writer) => Some(Frame::from_parts(
                 image_writer.imagebuf.into(), // converts into its inner held type
-                frame_metadata.left,
-                frame_metadata.top,
-                frame_metadata.delay,
+                frame_metadata.left(),
+                frame_metadata.top(),
+                frame_metadata.delay(),
             )),
             None => None,
         })
