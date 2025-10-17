@@ -8,7 +8,7 @@ use rascii_art::{RenderOptions, render_image_to};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 /// Holds the metadata for a frame that has been deconstructed.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct FrameMetadata {
     /// The left value for this frame.
     left: u32,

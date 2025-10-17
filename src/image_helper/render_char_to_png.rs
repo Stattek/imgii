@@ -6,7 +6,7 @@ use rayon::prelude::*;
 
 /// Represents a colored string to write.
 /// All characters are contiguous and share the same color.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ColoredStr {
     pub red: u8,
     pub blue: u8,
