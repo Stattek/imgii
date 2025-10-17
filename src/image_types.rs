@@ -54,6 +54,8 @@ impl OutputImageType {
 #[derive(Debug)]
 pub enum ImageBatchType {
     Single,
-    /// Contains the final index for this batch
-    BatchWithFinalIdx(u32),
+    /// Contains the final image index for this batch.
+    Batch {
+        final_index: u32,
+    },
 }

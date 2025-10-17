@@ -227,7 +227,9 @@ fn main() {
         }
         OutputImageType::Gif => {
             match batch_type {
-                ImageBatchType::BatchWithFinalIdx(final_img_idx) => {
+                ImageBatchType::Batch {
+                    final_index: final_img_idx,
+                } => {
                     // this line was really long, but with a little magic, we can shorten it
                     panic!(
                         "Cannot convert a batch of GIFs, argument final_img_idx={final_img_idx}. {}",
