@@ -1,6 +1,10 @@
 use crate::{
     ImgiiOptions,
-    image_helper::{image_data::ImageData, render_char_to_png::str_to_png},
+    image_helper::{
+        error::{FontError, ImgiiError, ParseIntError},
+        image_data::ImageData,
+        render_char_to_png::str_to_png,
+    },
 };
 
 use super::super::render_char_to_png::{ColoredStr, str_to_transparent_png};
@@ -10,6 +14,7 @@ use regex::Regex;
 // TODO: Read this font at runtime instead and allow the user to choose
 
 // read bytes for the font
+const FONT_FILE: &str = "../../../fonts/UbuntuMono.ttf";
 const FONT_BYTES: &[u8] = include_bytes!("../../../fonts/UbuntuMono.ttf");
 
 /// Generic function for parsing and rendering ASCII into an image.
@@ -19,9 +24,11 @@ const FONT_BYTES: &[u8] = include_bytes!("../../../fonts/UbuntuMono.ttf");
 pub fn render_ascii_generic(
     imgii_options: &ImgiiOptions,
     ascii_text: String,
-) -> Vec<Vec<ImageData>> {
+) -> Result<Vec<Vec<ImageData>>, ImgiiError> {
     // set up font for rendering
-    let font = FontRef::try_from_slice(FONT_BYTES).expect("Could not read input font");
+    let font = FontRef::try_from_slice(FONT_BYTES)
+        // there's nothing useful in this error, convert it!
+        .map_err(|_| FontError::new(String::from(FONT_FILE)))?;
 
     // contains lines of images
     // starting at 0 is the top, first line of the vector
@@ -41,29 +48,19 @@ pub fn render_ascii_generic(
 
         // TODO: if multiple threads are using this same regex object, maybe we could make it a
         // static global or compile it early so we can reuse it? Maybe as a "parser" object?
-        let re = Regex::new(&pattern_string)
-            .unwrap_or_else(|_| panic!("Error creating regex pattern ({})", pattern));
+        let re = Regex::new(&pattern_string)?;
 
         // create the image for this character
-        for (full_str, [r, g, b, the_str]) in re.captures_iter(line).map(|c| c.extract()) {
-            let red = r.parse::<u8>().unwrap_or_else(|_| {
-                panic!(
-                    "Error parsing red from string: ({}), full string: ({}). Improper encoding?",
-                    r, full_str
-                )
-            });
-            let green = g.parse::<u8>().unwrap_or_else(|_| {
-                panic!(
-                    "Error parsing green from string: ({}), full string: ({}). Improper encoding?",
-                    g, full_str
-                )
-            });
-            let blue = b.parse::<u8>().unwrap_or_else(|_| {
-                panic!(
-                    "Error parsing blue from string ({}), full string ({}). Improper encoding?",
-                    b, full_str
-                )
-            });
+        for (_full_str, [r, g, b, the_str]) in re.captures_iter(line).map(|c| c.extract()) {
+            let red = r.parse::<u8>().map_err(|err| {
+                ParseIntError::new(String::from("red"), String::from(the_str), err)
+            })?;
+            let green = g.parse::<u8>().map_err(|err| {
+                ParseIntError::new(String::from("green"), String::from(the_str), err)
+            })?;
+            let blue = b.parse::<u8>().map_err(|err| {
+                ParseIntError::new(String::from("blue"), String::from(the_str), err)
+            })?;
 
             let generated_png = {
                 if the_str.trim().is_empty() {
@@ -79,7 +76,6 @@ pub fn render_ascii_generic(
                     };
 
                     str_to_png(colored, &font, imgii_options)
-                        .unwrap_or_else(|_| panic!("Could not convert str ({}) to PNG", the_str))
                 }
             };
 
@@ -89,6 +85,5 @@ pub fn render_ascii_generic(
         image_2d_vec.push(char_images);
     }
 
-    image_2d_vec
+    Ok(image_2d_vec)
 }
-
