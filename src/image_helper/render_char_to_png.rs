@@ -19,11 +19,7 @@ const BACKGROUND_PIXEL: Rgba<u8> = Rgba([0, 0, 0, u8::MAX]);
 
 /// Converts string data into a png
 /// Uses `imageproc` to render text.
-pub fn str_to_png(
-    data: ColoredStr,
-    font: &FontRef<'_>,
-    imgii_options: &ImgiiOptions,
-) -> Result<ImageData, ()> {
+pub fn str_to_png(data: ColoredStr, font: &FontRef<'_>, imgii_options: &ImgiiOptions) -> ImageData {
     let font_size = imgii_options.font_size();
     let (char_width, char_height) = calculate_char_dimensions(font_size);
     // create our image to work with
@@ -48,7 +44,7 @@ pub fn str_to_png(
         &data.string,
     );
 
-    Ok(ImageData::new(image))
+    ImageData::new(image)
 }
 
 // PERF: this is a costly operation and should probably be removed
