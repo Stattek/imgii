@@ -1,7 +1,5 @@
 use std::{error::Error, fmt::Display};
 
-use image::error;
-
 /*
 * NOTE: Struct definitions go below.
 */
