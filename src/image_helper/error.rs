@@ -1,5 +1,7 @@
 use std::{error::Error, fmt::Display};
 
+use image::error;
+
 /*
 * NOTE: Struct definitions go below.
 */
@@ -28,17 +30,6 @@ pub enum ParseError {
     Regex(regex::Error),
     /// Handles errors related to parsing values.
     ParseValue(ParseIntError),
-}
-
-/// Regular expression compiler error.
-/// Doesn't actually implement Error, as it is easier to implement functionality in the super
-/// error, [`ParseError`].
-///
-/// Suberror of [`ParseError`].
-#[cfg(false)]
-#[derive(Debug, Clone)]
-pub struct RegexCompileError {
-    regex_pattern: String,
 }
 
 /// Regular expression compiler error.
@@ -90,6 +81,7 @@ impl Display for ParseError {
 
 // we don't need to implement anything since there are default implementations for this trait
 impl Error for FontError {}
+impl Error for ParseError {}
 
 /*
  * NOTE: Implement any `From` traits here.
