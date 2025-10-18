@@ -1,7 +1,5 @@
 use std::{error::Error, fmt::Display};
 
-use image::error;
-
 /*
 * NOTE: Struct definitions go below.
 */
@@ -85,6 +83,25 @@ pub struct FileError {
  * NOTE: Implement `Display` below for errors that are intended to also implement Error.
  */
 
+impl Display for ImgiiError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ImgiiError::Font(font_error) => {
+                write!(f, "{font_error}")
+            }
+            ImgiiError::Parse(parse_error) => {
+                write!(f, "{parse_error}")
+            }
+            ImgiiError::Internal(internal_error) => {
+                write!(f, "{internal_error}")
+            }
+            ImgiiError::Io(io_error) => {
+                write!(f, "{io_error}")
+            }
+        }
+    }
+}
+
 impl Display for FontError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "could not read font {}", self.font_name)
@@ -109,6 +126,26 @@ impl Display for ParseError {
     }
 }
 
+impl Display for InternalError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "an internal error has occurred")
+    }
+}
+
+impl Display for IoError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            IoError::File(file_error) => {
+                write!(
+                    f,
+                    "error occurred relating to file {} ({})",
+                    file_error.file_name, file_error.io_err
+                )
+            }
+        }
+    }
+}
+
 /*
  * NOTE: Implement Error for error types below.
  */
@@ -116,6 +153,7 @@ impl Display for ParseError {
 // we don't need to implement anything since there are default implementations for this trait
 impl Error for FontError {}
 impl Error for ParseError {}
+impl Error for ImgiiError {}
 
 /*
  * NOTE: Implement any `From` traits here.
