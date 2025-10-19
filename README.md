@@ -1,6 +1,10 @@
 # imgii
 
-imgii is an image rendering program that renders colored ANSI-encoded ASCII art as a PNG and saves the output file.
+[![Test Status](https://github.com/Stattek/imgii/actions/workflows/test.yml/badge.svg?event=push)](https://github.com/Stattek/imgii/actions)
+[![Crate](https://img.shields.io/crates/v/imgii.svg)](https://crates.io/crates/imgii)
+[![API](https://docs.rs/imgii/badge.svg)](https://docs.rs/imgii)
+
+imgii is an image rendering program and library that renders colored ANSI-encoded ASCII art as a PNG and saves the output file.
 Supports popular image types as input, such as PNG, JPEG, GIF, WEBP, and more.
 
 ## Building
@@ -12,6 +16,14 @@ git clone https://github.com/Stattek/imgii.git
 cd imgii
 # it's recommended to use a release build to run this program
 cargo build --release
+```
+
+## Library
+
+Add to your Rust program, with the following command:
+
+```bash
+cargo add imgii
 ```
 
 ## Usage
