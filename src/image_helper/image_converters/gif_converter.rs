@@ -145,7 +145,7 @@ fn read_gif_as_deconstructed_ascii(
         .map(|(image, deconstructed_frame)| {
             let mut ascii_text = String::new();
             // this failing for even a single frame of a GIF is not good, but let's try our best!
-            if let Err(_) = render_image_to(&image, &mut ascii_text, rascii_options) {
+            if render_image_to(&image, &mut ascii_text, rascii_options).is_err() {
                 None
             } else {
                 Some(NonRenderedFramePart::new(ascii_text, deconstructed_frame))

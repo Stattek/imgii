@@ -287,9 +287,7 @@ impl From<regex::Error> for ParseError {
 }
 impl From<regex::Error> for ImgiiError {
     fn from(err: regex::Error) -> Self {
-        // since we already have a way to convert this error to a ParseError, we can go from that
-        // error to an ImgiiError
-        err.into()
+        Self::Parse(ParseError::Regex(err))
     }
 }
 
@@ -300,7 +298,7 @@ impl From<ParseIntError> for ParseError {
 }
 impl From<ParseIntError> for ImgiiError {
     fn from(err: ParseIntError) -> Self {
-        err.into()
+        Self::Parse(ParseError::ParseValue(err))
     }
 }
 
