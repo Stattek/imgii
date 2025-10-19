@@ -1,6 +1,6 @@
 # imgii
 
-[![Test Status](https://github.com/Stattek/imgii/actions/workflows/test.yml/badge.svg?event=push)](https://github.com/Stattek/imgii/actions)
+[![Test Status](https://github.com/Stattek/imgii/actions/workflows/rust.yml/badge.svg)](https://github.com/Stattek/imgii/actions/workflows/rust.yml)
 [![Crate](https://img.shields.io/crates/v/imgii.svg)](https://crates.io/crates/imgii)
 [![API](https://docs.rs/imgii/badge.svg)](https://docs.rs/imgii)
 
