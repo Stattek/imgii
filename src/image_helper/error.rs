@@ -11,13 +11,13 @@ type DynError = dyn Error + Send + Sync;
 ///
 /// # Example
 ///
+/// This is useful for errors from other crates, which we don't know or care about their errors.
+///
 /// ```
-/// let err = gif_encoder.set_repeat(image::codecs::gif::Repeat::Infinite);
-/// if let Err(err) = err {
-///     // repeat couldn't be set properly
-///     let err_box:BoxedDynErr = Box::new(err);
-///     return Err(err_box.into());
-/// }
+/// use image::open;
+/// // open an image, convert it into an ImgiiError
+/// let input_file_name = "test.png";
+/// let loaded_img = open(input_file_name).map_err(|err| -> BoxedDynErr { Box::new(err) });
 /// ```
 pub type BoxedDynErr = Box<DynError>;
 
