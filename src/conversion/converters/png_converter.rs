@@ -6,7 +6,7 @@ use crate::{
 };
 
 use image::open;
-use rascii_art::render_image_to;
+use rascii_art_img::render_image_to;
 
 /// Reads and converts an image to ASCII and renders it into image.
 ///

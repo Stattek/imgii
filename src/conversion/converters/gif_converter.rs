@@ -7,7 +7,7 @@ use crate::{
 };
 
 use image::{AnimationDecoder, Delay, DynamicImage, codecs::gif::GifDecoder};
-use rascii_art::render_image_to;
+use rascii_art_img::render_image_to;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 /// Holds the metadata for a frame that has been deconstructed.

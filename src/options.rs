@@ -2,8 +2,8 @@
 
 // We need to re-export these, as they might be necessary for users of this library. Imgii's CLI
 // uses these.
-pub use rascii_art::RenderOptions as RasciiOptions;
-pub use rascii_art::{
+pub use rascii_art_img::RenderOptions as RasciiOptions;
+pub use rascii_art_img::{
     charsets::{Charset, from_enum, to_charset_enum},
     convert_string_to_str_vec,
 };
