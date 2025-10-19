@@ -45,6 +45,7 @@ impl ImgiiOptions {
 }
 
 /// Builder for [`ImgiiOptions`]. Intended way to create options for Imgii.
+#[derive(Debug, Clone)]
 pub struct ImgiiOptionsBuilder {
     /// The font size of the output image.
     font_size: u32,
