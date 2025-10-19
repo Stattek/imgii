@@ -13,8 +13,11 @@ type DynError = dyn Error + Send + Sync;
 ///
 /// This is useful for errors from other crates, which we don't know or care about their errors.
 ///
+/// TODO: move the errors to a better location in imgii, so it's imgii::error::....
+///
 /// ```
 /// use image::open;
+/// use imgii::image_helper::error::BoxedDynErr;
 /// // open an image, convert it into an ImgiiError
 /// let input_file_name = "test.png";
 /// let loaded_img = open(input_file_name).map_err(|err| -> BoxedDynErr { Box::new(err) });
