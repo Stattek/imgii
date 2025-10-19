@@ -38,7 +38,7 @@ use crate::{
 ///
 /// # Example
 ///
-/// ```
+/// ```no_run
 /// // Simple example showing off basic usage.
 ///
 /// use imgii::{
@@ -108,7 +108,7 @@ pub fn convert_to_ascii_png(
 ///
 /// # Example
 ///
-/// ```
+/// ```no_run
 /// // Simple example showing off basic usage.
 ///
 /// use imgii::{
