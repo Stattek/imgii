@@ -8,4 +8,5 @@
 
 - More robust error handling. Make it so we can avoid all panics!
     - In this process, we need to create our own errors which must be meaningful and useful.
+    - Probably should remove the "Internal" error since it's vague.
 
