@@ -131,7 +131,7 @@ pub fn convert_to_ascii_png(
 ///         // GIF was successfully saved
 ///         /* ... */
 ///     }
-///     Err(err) => {
+///     Err(_) => {
 ///         // failed, could not save GIF
 ///         /* ... */
 ///     }
