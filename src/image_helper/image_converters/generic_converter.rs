@@ -1,10 +1,7 @@
 use crate::{
     ImgiiOptions,
-    image_helper::{
-        error::{FontError, ImgiiError, ParseIntError},
-        image_data::ImageData,
-        render_char_to_png::str_to_png,
-    },
+    error::{FontError, ImgiiError, ParseIntError},
+    image_helper::{image_data::ImageData, render_char_to_png::str_to_png},
 };
 
 use super::super::render_char_to_png::{ColoredStr, str_to_transparent_png};

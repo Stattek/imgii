@@ -1,10 +1,8 @@
 use super::generic_converter::render_ascii_generic;
 use crate::{
     ImgiiOptions,
-    image_helper::{
-        error::{BoxedDynErr, ImgiiError},
-        image_data::ImageData,
-    },
+    error::{BoxedDynErr, ImgiiError},
+    image_helper::image_data::ImageData,
 };
 
 use image::open;

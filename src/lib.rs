@@ -1,3 +1,4 @@
+pub mod error;
 pub mod image_helper;
 pub mod image_types;
 use std::{fs::File, io::BufWriter};
@@ -10,9 +11,9 @@ use image_helper::{
 use rascii_art::RenderOptions;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
-use crate::image_helper::{
+use crate::{
     error::{BoxedDynErr, ImgiiError},
-    image_converters::gif_converter::read_as_deconstructed_rendered_gif_vec,
+    image_helper::image_converters::gif_converter::read_as_deconstructed_rendered_gif_vec,
 };
 
 /// Converts an image (such as a PNG or JPEG) into an ASCII PNG.

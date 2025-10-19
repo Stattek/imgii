@@ -251,8 +251,8 @@ fn main() {
                         Ok(_) => {
                             log::info!("Saved GIF {}", output_name_format);
                         }
-                        Err(_) => {
-                            log::error!("Could not save GIF {}", output_name_format);
+                        Err(err) => {
+                            log::error!("Could not save GIF {} ({})", output_name_format, err);
                         }
                     }
                 }
@@ -299,8 +299,8 @@ fn convert_png_batch(
             Ok(_) => {
                 log::info!("Saved PNG {}", output_file_name);
             }
-            Err(_) => {
-                panic!("Could not save PNG {}", output_file_name);
+            Err(err) => {
+                panic!("Could not save PNG {} ({})", output_file_name, err);
             }
         };
     });

@@ -1,5 +1,4 @@
 pub mod ascii_image_options;
-pub mod error;
 pub mod image_converters;
 pub mod image_data;
 pub mod image_writer;

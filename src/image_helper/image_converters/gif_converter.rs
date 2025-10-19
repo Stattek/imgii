@@ -2,10 +2,9 @@ use std::{fs::File, io::BufReader};
 
 use crate::{
     ImgiiOptions,
+    error::{BoxedDynErr, ImgiiError},
     image_helper::{
-        error::{BoxedDynErr, ImgiiError},
-        image_converters::generic_converter::render_ascii_generic,
-        image_data::ImageData,
+        image_converters::generic_converter::render_ascii_generic, image_data::ImageData,
     },
 };
 

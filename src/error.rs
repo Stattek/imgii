@@ -13,11 +13,9 @@ type DynError = dyn Error + Send + Sync;
 ///
 /// This is useful for errors from other crates, which we don't know or care about their errors.
 ///
-/// TODO: move the errors to a better location in imgii, so it's imgii::error::....
-///
 /// ```
 /// use image::open;
-/// use imgii::image_helper::error::BoxedDynErr;
+/// use imgii::error::BoxedDynErr;
 /// // open an image, convert it into an ImgiiError
 /// let input_file_name = "test.png";
 /// let loaded_img = open(input_file_name).map_err(|err| -> BoxedDynErr { Box::new(err) });
@@ -338,6 +336,7 @@ impl OtherError {
     /// For use with other kinds of errors that the program can handle.
     ///
     /// * `other_err`: The other error, boxed.
+    #[must_use]
     pub fn new(other_err: BoxedDynErr) -> Self {
         Self { other_err }
     }
@@ -357,6 +356,7 @@ impl ParseImageError {
     /// Creates a new [`ParseImageError`].
     ///
     /// * `image_row_number`: The image row number.
+    #[must_use]
     pub fn new(image_row_number: usize) -> Self {
         Self { image_row_number }
     }

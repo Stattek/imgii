@@ -1,7 +1,7 @@
 use crate::{
     ImgiiOptions,
+    error::{ImgiiError, InvalidParameterError, ParseImageError},
     image_helper::{
-        error::{ImgiiError, InvalidParameterError, ParseImageError},
         image_data::{ImageData, InternalImage},
         render_char_to_png::calculate_char_dimensions,
     },
