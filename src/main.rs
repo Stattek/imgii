@@ -294,7 +294,6 @@ fn main() {
 /// * `final_image_index`: The final image index of input PNGs.
 /// * `input_name_format`: The input name format for input PNGs.
 /// * `output_name_format`: The output name format for saved PNGs.
-/// * `rascii_options`: The RASCII options for generating ASCII text.
 /// * `imgii_options`: The imgii options for rendering ASCII as PNG.
 ///
 /// # Panics
