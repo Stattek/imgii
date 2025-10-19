@@ -1,7 +1,12 @@
 [package]
 name = "imgii"
-version = "0.6.0"
+authors = [ "Stattek" ]
+version = "0.7.0"
 edition = "2024"
+license = "MIT"
+description = "ASCII Image Generator"
+repository = "https://github.com/Stattek/imgii"
+keywords = [ "ascii", "image", "art" ]
 
 [dependencies]
 ab_glyph = "0.2.32"
@@ -14,3 +19,7 @@ num_cpus = "1.17.0"
 rascii_art = { version = "0.4.5", git = "https://github.com/Stattek/RASCII", branch = "master"}
 rayon = "1.11.0"
 regex = "1.12.1"
+
+[profile.release]
+opt-level=3
+strip=true

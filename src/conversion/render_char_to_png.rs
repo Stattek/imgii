@@ -1,4 +1,4 @@
-use crate::image_helper::{ascii_image_options::ImgiiOptions, image_data::ImageData};
+use crate::{conversion::image_data::ImageData, options::ImgiiOptions};
 use ab_glyph::{FontRef, PxScale};
 use image::{DynamicImage, ImageBuffer, Rgba, RgbaImage};
 use imageproc::drawing::draw_text_mut;
@@ -6,7 +6,7 @@ use rayon::prelude::*;
 
 /// Represents a colored string to write.
 /// All characters are contiguous and share the same color.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct ColoredStr {
     pub red: u8,
     pub blue: u8,
@@ -14,16 +14,11 @@ pub struct ColoredStr {
     pub string: String,
 }
 
-pub const DEFAULT_CHAR_FONT_SIZE: u32 = 16;
 const BACKGROUND_PIXEL: Rgba<u8> = Rgba([0, 0, 0, u8::MAX]);
 
 /// Converts string data into a png
 /// Uses `imageproc` to render text.
-pub fn str_to_png(
-    data: ColoredStr,
-    font: &FontRef<'_>,
-    imgii_options: &ImgiiOptions,
-) -> Result<ImageData, ()> {
+pub fn str_to_png(data: ColoredStr, font: &FontRef<'_>, imgii_options: &ImgiiOptions) -> ImageData {
     let font_size = imgii_options.font_size();
     let (char_width, char_height) = calculate_char_dimensions(font_size);
     // create our image to work with
@@ -34,7 +29,7 @@ pub fn str_to_png(
     };
 
     // set background if user wants it
-    if imgii_options.background {
+    if imgii_options.background() {
         set_background(&mut image);
     }
 
@@ -48,7 +43,7 @@ pub fn str_to_png(
         &data.string,
     );
 
-    Ok(ImageData::new(image))
+    ImageData::new(image)
 }
 
 // PERF: this is a costly operation and should probably be removed
@@ -69,7 +64,7 @@ pub fn str_to_transparent_png(imgii_options: &ImgiiOptions) -> ImageData {
     // top of that?
 
     // set background if user wants it
-    if imgii_options.background {
+    if imgii_options.background() {
         set_background(&mut output);
     }
 

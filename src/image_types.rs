@@ -1,6 +1,6 @@
 /// Holds the image types that imgii can output.
 /// Each value holds an index into the `IMAGE_STR_TYPES` array.
-#[derive(Debug)]
+#[derive(Debug, Clone, Copy)]
 pub enum OutputImageType {
     Png,
     Gif,
@@ -51,9 +51,11 @@ impl OutputImageType {
 }
 
 /// Holds whether the program should convert a batch of inputs or just a single.
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum ImageBatchType {
     Single,
-    /// Contains the final index for this batch
-    BatchWithFinalIdx(u32),
+    /// Contains the final image index for this batch.
+    Batch {
+        final_index: u32,
+    },
 }
