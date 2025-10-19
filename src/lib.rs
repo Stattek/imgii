@@ -20,7 +20,7 @@ use crate::{
         image_writer::AsciiImageWriter,
     },
     error::{BoxedDynErr, ImgiiError},
-    options::{ImgiiOptions, RasciiOptions},
+    options::ImgiiOptions,
 };
 
 /// Converts an image (such as a PNG or JPEG) into an ASCII PNG.
@@ -30,7 +30,6 @@ use crate::{
 /// # Params
 /// - `input_file_name` - The input file name.
 /// - `output_file_name` - The output file name.
-/// - `rascii_options` - The `RASCII` render options.
 /// - `imgii_options` - The `imgii` render options
 ///
 /// # Returns
@@ -43,45 +42,42 @@ use crate::{
 ///
 /// use imgii::{
 ///     convert_to_ascii_png,
-///     options::{Charset, ImgiiOptionsBuilder, RasciiOptions, from_enum},
+///     options::{Charset, ImgiiOptionsBuilder, from_enum},
 /// };
 ///
+/// # fn main() {
 /// let input_file_name = "the_input_image.jpg";
 /// let output_file_name = "the_output_image.png";
 ///
-/// // rascii options (for converting image to ASCII text)
-/// let rascii_options = RasciiOptions::new()
-///     .colored(true)
-///     .escape_each_colored_char(true)
-///     .charset(from_enum(Charset::Minimal));
-///
 /// // imgii options (for converting image to ASCII image)
-/// let imgii_options = ImgiiOptionsBuilder::new().font_size(16).background(false).build();
+/// let imgii_options = ImgiiOptionsBuilder::new()
+///     .charset(from_enum(Charset::Minimal))
+///     .background(false)
+///     .build();
 ///
 /// // perform the conversion
 /// match convert_to_ascii_png(
-///     &input_file_name,
-///     &output_file_name,
-///     &rascii_options,
+///     input_file_name,
+///     output_file_name,
 ///     &imgii_options,
 /// ) {
 ///     Ok(_) => {
-///         // success!
-///         println!("Saved PNG {}", output_file_name);
+///         // PNG was successfully saved
+///         /* ... */
 ///     }
-///     Err(err) => {
-///         // failure
-///         panic!("Could not save PNG {} ({})", output_file_name, err);
+///     Err(_) => {
+///         // failed, could not save PNG
+///         /* ... */
 ///     }
 /// };
+/// # }
 /// ```
 pub fn convert_to_ascii_png(
     input_file_name: &str,
     output_file_name: &str,
-    rascii_options: &RasciiOptions,
     imgii_options: &ImgiiOptions,
 ) -> Result<(), ImgiiError> {
-    let lines = parse_ascii_to_2d_png_vec(input_file_name, rascii_options, imgii_options)?;
+    let lines = parse_ascii_to_2d_png_vec(input_file_name, imgii_options)?;
     let final_image_writer = AsciiImageWriter::from_2d_vec(lines, imgii_options)?;
 
     // write the image
@@ -100,7 +96,6 @@ pub fn convert_to_ascii_png(
 /// # Params
 /// - `input_file_name` - The input file name.
 /// - `output_file_name` - The output file name.
-/// - `rascii_options` - The `RASCII` render options.
 /// - `imgii_options` - The `imgii` render options
 ///
 /// # Returns
@@ -116,41 +111,39 @@ pub fn convert_to_ascii_png(
 ///     options::{Charset, ImgiiOptionsBuilder, RasciiOptions, from_enum},
 /// };
 ///
+/// # fn main() {
 /// let input_file_name = "the_input_image.gif";
 /// let output_file_name = "the_output_image.gif";
 ///
-/// // rascii options (for converting image to ASCII text)
-/// let rascii_options = RasciiOptions::new()
-///     .colored(true)
-///     .escape_each_colored_char(true)
-///     .charset(from_enum(Charset::Minimal));
-///
 /// // imgii options (for converting image to ASCII image)
-/// let imgii_options = ImgiiOptionsBuilder::new().build();
+/// let imgii_options = ImgiiOptionsBuilder::new()
+///     .background(true) // set black background behind GIF
+///     .width(50) // keeps the aspect ratio but is 50 pixels wide
+///     .build();
 ///
 /// // perform the conversion
 /// match convert_to_ascii_gif(
-///     &input_file_name,
-///     &output_file_name,
-///     &rascii_options,
+///     input_file_name,
+///     output_file_name,
 ///     &imgii_options,
 /// ) {
 ///     Ok(_) => {
-///         println!("Saved GIF {}", output_file_name);
+///         // GIF was successfully saved
+///         /* ... */
 ///     }
 ///     Err(err) => {
-///         panic!("Could not save GIF {} ({})", output_file_name, err);
+///         // failed, could not save GIF
+///         /* ... */
 ///     }
 /// };
+/// # }
 /// ```
 pub fn convert_to_ascii_gif(
     input_file_name: &str,
     output_file_name: &str,
-    rascii_options: &RasciiOptions,
     imgii_options: &ImgiiOptions,
 ) -> Result<(), ImgiiError> {
-    let raw_frames =
-        read_as_deconstructed_rendered_gif_vec(input_file_name, rascii_options, imgii_options)?;
+    let raw_frames = read_as_deconstructed_rendered_gif_vec(input_file_name, imgii_options)?;
 
     // create an image writer for each frame
     let image_writers = raw_frames

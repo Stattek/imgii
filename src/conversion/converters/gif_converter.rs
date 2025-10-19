@@ -129,7 +129,7 @@ impl NonRenderedFramePart {
 ///
 /// * `input_file_name`: The input file name.
 /// * `rascii_options`: The RASCII options for converting to ASCII.
-fn read_gif_as_deconstructed_ascii(
+pub fn read_gif_as_deconstructed_ascii(
     input_file_name: &str,
     rascii_options: &RasciiOptions,
 ) -> Result<Vec<Option<NonRenderedFramePart>>, ImgiiError> {
@@ -158,14 +158,13 @@ fn read_gif_as_deconstructed_ascii(
 /// NOTE: performs a best-effort conversion, some frames may fail and will be returned as a `None`.
 ///
 /// * `input_file_name`: the input file name.
-/// * `rascii_options`: the rascii options for converting to ascii.
 /// * `imgii_options`: the imgii options for rendering ascii.
 pub fn read_as_deconstructed_rendered_gif_vec(
     input_file_name: &str,
-    rascii_options: &RasciiOptions,
     imgii_options: &ImgiiOptions,
 ) -> Result<Vec<Option<RenderedFramePart>>, ImgiiError> {
-    let ascii_text = read_gif_as_deconstructed_ascii(input_file_name, rascii_options)?;
+    let ascii_text =
+        read_gif_as_deconstructed_ascii(input_file_name, imgii_options.rascii_options())?;
 
     // create image data for each frame and keep the frame metadata so we can use it again later
     Ok(ascii_text
@@ -197,7 +196,7 @@ pub fn read_as_deconstructed_rendered_gif_vec(
 ///
 /// # Returns
 /// `Err()` upon error reading the GIF, `Ok()` otherwise.
-fn read_deconstructed_gif(
+pub fn read_deconstructed_gif(
     input_file_name: &str,
 ) -> Result<Vec<(DynamicImage, FrameMetadata)>, ImgiiError> {
     let file_in = BufReader::new(File::open(input_file_name)?);

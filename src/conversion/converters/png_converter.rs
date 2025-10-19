@@ -12,7 +12,6 @@ use rascii_art::render_image_to;
 ///
 /// # Params
 /// * `input_file_name`: The input file name of the image to convert.
-/// * `rascii_options`: The RASCII options for converting to ASCII.
 /// * `imgii_options`: The imgii options for rendering ASCII.
 ///
 /// # Returns
@@ -20,10 +19,9 @@ use rascii_art::render_image_to;
 ///   image.
 pub fn parse_ascii_to_2d_png_vec(
     input_file_name: &str,
-    rascii_options: &RasciiOptions,
     imgii_options: &ImgiiOptions,
 ) -> Result<Vec<Vec<ImageData>>, ImgiiError> {
-    let ascii_text = read_png_as_ascii(input_file_name, rascii_options)?;
+    let ascii_text = read_png_as_ascii(input_file_name, imgii_options.rascii_options())?;
     render_ascii_generic(imgii_options, ascii_text)
 }
 
@@ -35,7 +33,7 @@ pub fn parse_ascii_to_2d_png_vec(
 ///
 /// # Returns
 /// * `String` containing the colored image data as ASCII, colored using terminal escape sequences.
-fn read_png_as_ascii(
+pub fn read_png_as_ascii(
     input_file_name: &str,
     rascii_options: &RasciiOptions,
 ) -> Result<String, ImgiiError> {
