@@ -41,7 +41,10 @@ use crate::{
 /// ```
 /// // Simple example showing off basic usage.
 ///
-/// use imgii::options::{ImgiiOptionsBuilder, RasciiOptions, Charset, from_enum};
+/// use imgii::{
+///     convert_to_ascii_png,
+///     options::{Charset, ImgiiOptionsBuilder, RasciiOptions, from_enum},
+/// };
 ///
 /// let input_file_name = "the_input_image.jpg";
 /// let output_file_name = "the_output_image.png";
@@ -108,7 +111,10 @@ pub fn convert_to_ascii_png(
 /// ```
 /// // Simple example showing off basic usage.
 ///
-/// use imgii::options::{ImgiiOptionsBuilder, RasciiOptions, Charset, from_enum};
+/// use imgii::{
+///     convert_to_ascii_png,
+///     options::{Charset, ImgiiOptionsBuilder, RasciiOptions, from_enum},
+/// };
 ///
 /// let input_file_name = "the_input_image.gif";
 /// let output_file_name = "the_output_image.gif";
