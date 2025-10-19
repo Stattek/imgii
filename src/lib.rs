@@ -112,7 +112,7 @@ pub fn convert_to_ascii_png(
 /// // Simple example showing off basic usage.
 ///
 /// use imgii::{
-///     convert_to_ascii_png,
+///     convert_to_ascii_gif,
 ///     options::{Charset, ImgiiOptionsBuilder, RasciiOptions, from_enum},
 /// };
 ///
