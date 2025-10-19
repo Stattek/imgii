@@ -1,15 +1,13 @@
 use std::{fs::File, io::BufReader};
 
 use crate::{
-    ImgiiOptions,
+    conversion::{converters::generic_converter::render_ascii_generic, image_data::ImageData},
     error::{BoxedDynErr, ImgiiError},
-    image_helper::{
-        image_converters::generic_converter::render_ascii_generic, image_data::ImageData,
-    },
+    options::{ImgiiOptions, RasciiOptions},
 };
 
 use image::{AnimationDecoder, Delay, DynamicImage, codecs::gif::GifDecoder};
-use rascii_art::{RenderOptions, render_image_to};
+use rascii_art::render_image_to;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 /// Holds the metadata for a frame that has been deconstructed.
@@ -133,7 +131,7 @@ impl NonRenderedFramePart {
 /// * `rascii_options`: The RASCII options for converting to ASCII.
 fn read_gif_as_deconstructed_ascii(
     input_file_name: &str,
-    rascii_options: &RenderOptions,
+    rascii_options: &RasciiOptions,
 ) -> Result<Vec<Option<NonRenderedFramePart>>, ImgiiError> {
     // render the ascii text as images
     let deconstructed_gif = read_deconstructed_gif(input_file_name)?;
@@ -164,7 +162,7 @@ fn read_gif_as_deconstructed_ascii(
 /// * `imgii_options`: the imgii options for rendering ascii.
 pub fn read_as_deconstructed_rendered_gif_vec(
     input_file_name: &str,
-    rascii_options: &RenderOptions,
+    rascii_options: &RasciiOptions,
     imgii_options: &ImgiiOptions,
 ) -> Result<Vec<Option<RenderedFramePart>>, ImgiiError> {
     let ascii_text = read_gif_as_deconstructed_ascii(input_file_name, rascii_options)?;

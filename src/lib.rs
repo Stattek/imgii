@@ -1,19 +1,26 @@
+//! Imgii is a library for converting images to ASCII and rendering as different image types. For
+//! example, it can take a PNG input and convert it into ASCII, render it, and save it.
+
+pub mod conversion;
 pub mod error;
-pub mod image_helper;
 pub mod image_types;
+pub mod options;
+
 use std::{fs::File, io::BufWriter};
 
 use image::{Frame, codecs::gif::GifEncoder};
-use image_helper::{
-    ascii_image_options::ImgiiOptions, image_converters::png_converter::parse_ascii_to_2d_png_vec,
-    image_writer::AsciiImageWriter,
-};
-use rascii_art::RenderOptions;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 use crate::{
+    conversion::{
+        converters::{
+            gif_converter::read_as_deconstructed_rendered_gif_vec,
+            png_converter::parse_ascii_to_2d_png_vec,
+        },
+        image_writer::AsciiImageWriter,
+    },
     error::{BoxedDynErr, ImgiiError},
-    image_helper::image_converters::gif_converter::read_as_deconstructed_rendered_gif_vec,
+    options::{ImgiiOptions, RasciiOptions},
 };
 
 /// Converts an image (such as a PNG or JPEG) into an ASCII PNG.
@@ -28,10 +35,47 @@ use crate::{
 ///
 /// # Returns
 /// - `Err(())` upon error, `Ok(())` otherwise.
+///
+/// # Example
+///
+/// ```
+/// // Simple example showing off basic usage.
+///
+/// use imgii::options::{ImgiiOptionsBuilder, RasciiOptions, Charset, from_enum};
+///
+/// let input_file_name = "the_input_image.jpg";
+/// let output_file_name = "the_output_image.png";
+///
+/// // rascii options (for converting image to ASCII text)
+/// let rascii_options = RasciiOptions::new()
+///     .colored(true)
+///     .escape_each_colored_char(true)
+///     .charset(from_enum(Charset::Minimal));
+///
+/// // imgii options (for converting image to ASCII image)
+/// let imgii_options = ImgiiOptionsBuilder::new().font_size(16).background(false).build();
+///
+/// // perform the conversion
+/// match convert_to_ascii_png(
+///     &input_file_name,
+///     &output_file_name,
+///     &rascii_options,
+///     &imgii_options,
+/// ) {
+///     Ok(_) => {
+///         // success!
+///         println!("Saved PNG {}", output_file_name);
+///     }
+///     Err(err) => {
+///         // failure
+///         panic!("Could not save PNG {} ({})", output_file_name, err);
+///     }
+/// };
+/// ```
 pub fn convert_to_ascii_png(
     input_file_name: &str,
     output_file_name: &str,
-    rascii_options: &RenderOptions,
+    rascii_options: &RasciiOptions,
     imgii_options: &ImgiiOptions,
 ) -> Result<(), ImgiiError> {
     let lines = parse_ascii_to_2d_png_vec(input_file_name, rascii_options, imgii_options)?;
@@ -58,10 +102,45 @@ pub fn convert_to_ascii_png(
 ///
 /// # Returns
 /// - `Err(())` upon error, `Ok(())` otherwise.
+///
+/// # Example
+///
+/// ```
+/// // Simple example showing off basic usage.
+///
+/// use imgii::options::{ImgiiOptionsBuilder, RasciiOptions, Charset, from_enum};
+///
+/// let input_file_name = "the_input_image.gif";
+/// let output_file_name = "the_output_image.gif";
+///
+/// // rascii options (for converting image to ASCII text)
+/// let rascii_options = RasciiOptions::new()
+///     .colored(true)
+///     .escape_each_colored_char(true)
+///     .charset(from_enum(Charset::Minimal));
+///
+/// // imgii options (for converting image to ASCII image)
+/// let imgii_options = ImgiiOptionsBuilder::new().build();
+///
+/// // perform the conversion
+/// match convert_to_ascii_gif(
+///     &input_file_name,
+///     &output_file_name,
+///     &rascii_options,
+///     &imgii_options,
+/// ) {
+///     Ok(_) => {
+///         println!("Saved GIF {}", output_file_name);
+///     }
+///     Err(err) => {
+///         panic!("Could not save GIF {} ({})", output_file_name, err);
+///     }
+/// };
+/// ```
 pub fn convert_to_ascii_gif(
     input_file_name: &str,
     output_file_name: &str,
-    rascii_options: &RenderOptions,
+    rascii_options: &RasciiOptions,
     imgii_options: &ImgiiOptions,
 ) -> Result<(), ImgiiError> {
     let raw_frames =

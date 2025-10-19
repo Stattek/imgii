@@ -1,17 +1,17 @@
 use clap::Parser;
 use clap::builder as clap_builder;
 use clap::builder::styling as clap_styling;
-use imgii::convert_to_ascii_gif;
-use imgii::image_helper::ascii_image_options::ImgiiOptions;
-use imgii::image_types::{IMG_TYPES_ARRAY, ImageBatchType};
-use imgii::{convert_to_ascii_png, image_types::OutputImageType};
-use rascii_art::{
-    RenderOptions,
-    charsets::{self, from_enum, to_charset_enum},
-    convert_string_to_str_vec,
-};
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use std::{sync::Arc, time::Instant};
+
+use imgii::{
+    convert_to_ascii_gif, convert_to_ascii_png,
+    image_types::{IMG_TYPES_ARRAY, ImageBatchType, OutputImageType},
+    options::{
+        Charset, ImgiiOptions, ImgiiOptionsBuilder, RasciiOptions, convert_string_to_str_vec,
+        from_enum, to_charset_enum,
+    },
+};
 
 #[derive(Debug, Parser)]
 #[command(author, version, about, styles=set_color_style())]
@@ -144,6 +144,56 @@ fn setup_threads() {
     }
 }
 
+/// Creates an instance of [`ImgiiOptions`] for the CLI for imgii.
+///
+/// * `font_size`: The font size argument.
+/// * `background`: The background flag.
+fn create_imgii_options(font_size: Option<u32>, background: bool) -> ImgiiOptions {
+    let mut builder = ImgiiOptionsBuilder::new().background(background);
+
+    // set values that might not exist. The builder will choose its own defaults if not specified
+    if let Some(font_size) = font_size {
+        builder = builder.font_size(font_size);
+    }
+
+    builder.build()
+}
+
+/// Creates [`RasciiOptions`] for RASCII.
+///
+/// * `width`: The width.
+/// * `height`: The height.
+/// * `invert`: Whether image should be inverted.
+/// * `rascii_charset`: The RASCII charset enum value.
+/// * `char_override`: The char override value.
+fn create_rascii_options<'a>(
+    width: Option<u32>,
+    height: Option<u32>,
+    invert: bool,
+    rascii_charset: Charset,
+    char_override: Option<String>,
+) -> RasciiOptions<'a> {
+    let mut builder = RasciiOptions::new();
+
+    // build the complex values first
+    if let Some(width) = width {
+        builder = builder.width(width);
+    }
+    if let Some(height) = height {
+        builder = builder.height(height);
+    }
+    if let Some(char_override) = char_override {
+        // converts the string to a string vec if it is Some, otherwise stores as None
+        builder = builder.char_override(convert_string_to_str_vec(char_override));
+    }
+
+    builder
+        .colored(true)
+        .escape_each_colored_char(true)
+        .invert(invert)
+        .charset(from_enum(rascii_charset))
+}
+
 fn main() {
     let mut args = Args::parse();
     env_logger::init();
@@ -168,19 +218,16 @@ fn main() {
         }
     };
 
-    let rascii_charset = to_charset_enum(&args.charset).unwrap_or(charsets::Charset::Minimal);
+    let rascii_charset = to_charset_enum(&args.charset).unwrap_or(Charset::Minimal);
 
     // the options for RASCII for converting to ASCII under the hood
-    let rascii_options = RenderOptions {
-        width: args.width,
-        height: args.height,
-        colored: true,
-        escape_each_colored_char: true,
-        invert: args.invert,
-        charset: from_enum(rascii_charset),
-        // converts the string to a string vec if it is Some, otherwise stores as None
-        char_override: args.char_override.map(convert_string_to_str_vec),
-    };
+    let rascii_options = create_rascii_options(
+        args.width,
+        args.height,
+        args.invert,
+        rascii_charset,
+        args.char_override,
+    );
     log::debug!("RASCII options = {:?}", rascii_options);
 
     // are we doing a batch of images or a single image
@@ -192,8 +239,8 @@ fn main() {
         ImageBatchType::Single
     };
 
-    // our options for rendering ASCII
-    let imgii_options = ImgiiOptions::new(args.font_size, args.background);
+    // our options for rendering ASCII in imgii
+    let imgii_options = create_imgii_options(args.font_size, args.background);
     log::debug!("imgii options = {:?}", imgii_options);
 
     // Now, handle the conversion
@@ -275,7 +322,7 @@ fn convert_png_batch(
     final_image_index: u32,
     input_name_format: Arc<String>,
     output_name_format: Arc<String>,
-    rascii_options: Arc<RenderOptions<'static>>,
+    rascii_options: Arc<RasciiOptions<'static>>,
     imgii_options: Arc<ImgiiOptions>,
 ) {
     let starting_time = Instant::now();

@@ -1,12 +1,12 @@
 use super::generic_converter::render_ascii_generic;
 use crate::{
-    ImgiiOptions,
+    conversion::image_data::ImageData,
     error::{BoxedDynErr, ImgiiError},
-    image_helper::image_data::ImageData,
+    options::{ImgiiOptions, RasciiOptions},
 };
 
 use image::open;
-use rascii_art::{RenderOptions, render_image_to};
+use rascii_art::render_image_to;
 
 /// Reads and converts an image to ASCII and renders it into image.
 ///
@@ -20,7 +20,7 @@ use rascii_art::{RenderOptions, render_image_to};
 ///   image.
 pub fn parse_ascii_to_2d_png_vec(
     input_file_name: &str,
-    rascii_options: &RenderOptions,
+    rascii_options: &RasciiOptions,
     imgii_options: &ImgiiOptions,
 ) -> Result<Vec<Vec<ImageData>>, ImgiiError> {
     let ascii_text = read_png_as_ascii(input_file_name, rascii_options)?;
@@ -37,7 +37,7 @@ pub fn parse_ascii_to_2d_png_vec(
 /// * `String` containing the colored image data as ASCII, colored using terminal escape sequences.
 fn read_png_as_ascii(
     input_file_name: &str,
-    rascii_options: &RenderOptions,
+    rascii_options: &RasciiOptions,
 ) -> Result<String, ImgiiError> {
     // render the ascii text with RASCII
     let mut ascii_text = String::new();

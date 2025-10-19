@@ -1,10 +1,10 @@
 use crate::{
-    ImgiiOptions,
-    error::{ImgiiError, InvalidParameterError, ParseImageError},
-    image_helper::{
+    conversion::{
         image_data::{ImageData, InternalImage},
         render_char_to_png::calculate_char_dimensions,
     },
+    error::{ImgiiError, InvalidParameterError, ParseImageError},
+    options::ImgiiOptions,
 };
 use rayon::prelude::*;
 
@@ -35,7 +35,6 @@ impl AsciiImageWriter {
     /// # Returns
     /// - An `Option` containing `Some` `AsciiImageWriter` upon success, or a
     ///   `None` upon failure.
-    #[must_use]
     pub fn from_2d_vec(
         parts: Vec<Vec<ImageData>>,
         pngii_options: &ImgiiOptions,

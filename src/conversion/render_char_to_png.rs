@@ -1,4 +1,4 @@
-use crate::image_helper::{ascii_image_options::ImgiiOptions, image_data::ImageData};
+use crate::{conversion::image_data::ImageData, options::ImgiiOptions};
 use ab_glyph::{FontRef, PxScale};
 use image::{DynamicImage, ImageBuffer, Rgba, RgbaImage};
 use imageproc::drawing::draw_text_mut;
@@ -14,7 +14,6 @@ pub struct ColoredStr {
     pub string: String,
 }
 
-pub const DEFAULT_CHAR_FONT_SIZE: u32 = 16;
 const BACKGROUND_PIXEL: Rgba<u8> = Rgba([0, 0, 0, u8::MAX]);
 
 /// Converts string data into a png
@@ -30,7 +29,7 @@ pub fn str_to_png(data: ColoredStr, font: &FontRef<'_>, imgii_options: &ImgiiOpt
     };
 
     // set background if user wants it
-    if imgii_options.background {
+    if imgii_options.background() {
         set_background(&mut image);
     }
 
@@ -65,7 +64,7 @@ pub fn str_to_transparent_png(imgii_options: &ImgiiOptions) -> ImageData {
     // top of that?
 
     // set background if user wants it
-    if imgii_options.background {
+    if imgii_options.background() {
         set_background(&mut output);
     }
 
