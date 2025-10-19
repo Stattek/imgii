@@ -4,6 +4,23 @@ use std::{error::Error, fmt::Display};
 * NOTE: Struct definitions go below.
 */
 
+/// This is the type that we want to use for boxed errors to make sure they're thread-safe.
+type DynError = dyn Error + Send + Sync;
+
+/// Boxed error type for converting to [`ImgiiError`].
+///
+/// # Example
+///
+/// ```
+/// let err = gif_encoder.set_repeat(image::codecs::gif::Repeat::Infinite);
+/// if let Err(err) = err {
+///     // repeat couldn't be set properly
+///     let err_box:BoxedDynErr = Box::new(err);
+///     return Err(err_box.into());
+/// }
+/// ```
+pub type BoxedDynErr = Box<DynError>;
+
 /// An error that can be returned by Imgii. Represents errors when converting images.
 #[derive(Debug)]
 pub enum ImgiiError {
@@ -76,7 +93,7 @@ pub enum ImageError {
 #[derive(Debug)]
 pub struct OtherError {
     // we can hold any other Error in here
-    other_err: Box<dyn Error>,
+    other_err: BoxedDynErr,
 }
 
 /// Represents an invalid parameter error when creating image.
@@ -253,8 +270,8 @@ impl From<ParseImageError> for ImgiiError {
 }
 
 // for converting from errors boxed at runtime
-impl From<Box<dyn Error>> for ImgiiError {
-    fn from(value: Box<dyn Error>) -> Self {
+impl From<BoxedDynErr> for ImgiiError {
+    fn from(value: BoxedDynErr) -> Self {
         Self::Other(OtherError::new(value))
     }
 }
@@ -320,7 +337,7 @@ impl OtherError {
     /// For use with other kinds of errors that the program can handle.
     ///
     /// * `other_err`: The other error, boxed.
-    pub fn new(other_err: Box<dyn Error>) -> Self {
+    pub fn new(other_err: BoxedDynErr) -> Self {
         Self { other_err }
     }
 }

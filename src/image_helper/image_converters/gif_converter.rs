@@ -1,9 +1,10 @@
-use std::{error::Error, fs::File, io::BufReader};
+use std::{fs::File, io::BufReader};
 
 use crate::{
     ImgiiOptions,
     image_helper::{
-        error::ImgiiError, image_converters::generic_converter::render_ascii_generic,
+        error::{BoxedDynErr, ImgiiError},
+        image_converters::generic_converter::render_ascii_generic,
         image_data::ImageData,
     },
 };
@@ -211,7 +212,7 @@ fn read_deconstructed_gif(
             // the input data in the gif was wrong
 
             // convert to boxed err then convert to ImgiiError
-            let err_box: Box<dyn Error> = Box::new(err); // have to specify `dyn Error`. ugh.
+            let err_box: BoxedDynErr = Box::new(err); // have to specify `dyn Error`. ugh.
             return Err(err_box.into());
         }
     };
@@ -221,7 +222,7 @@ fn read_deconstructed_gif(
         Ok(frames) => frames,
         Err(err) => {
             // the data is malformed in this GIF
-            let err_box: Box<dyn Error> = Box::new(err);
+            let err_box: BoxedDynErr = Box::new(err);
             return Err(err_box.into());
         }
     };

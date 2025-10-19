@@ -1,9 +1,10 @@
-use std::error::Error;
-
 use super::generic_converter::render_ascii_generic;
 use crate::{
     ImgiiOptions,
-    image_helper::{error::ImgiiError, image_data::ImageData},
+    image_helper::{
+        error::{BoxedDynErr, ImgiiError},
+        image_data::ImageData,
+    },
 };
 
 use image::open;
@@ -42,9 +43,9 @@ fn read_png_as_ascii(
 ) -> Result<String, ImgiiError> {
     // render the ascii text with RASCII
     let mut ascii_text = String::new();
-    let loaded_img = open(input_file_name).map_err(|err| -> Box<dyn Error> { Box::new(err) })?;
+    let loaded_img = open(input_file_name).map_err(|err| -> BoxedDynErr { Box::new(err) })?;
     render_image_to(&loaded_img, &mut ascii_text, rascii_options)
-        .map_err(|err| -> Box<dyn Error> { Box::new(err) })?;
+        .map_err(|err| -> BoxedDynErr { Box::new(err) })?;
 
     Ok(ascii_text)
 }
