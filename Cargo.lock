@@ -526,7 +526,7 @@ dependencies = [
 
 [[package]]
 name = "imgii"
-version = "0.7.1"
+version = "0.7.2"
 dependencies = [
  "ab_glyph",
  "clap",
@@ -535,7 +535,7 @@ dependencies = [
  "imageproc",
  "log",
  "num_cpus",
- "rascii_art",
+ "rascii_art_img",
  "rayon",
  "regex",
 ]
@@ -1018,9 +1018,10 @@ dependencies = [
 ]
 
 [[package]]
-name = "rascii_art"
-version = "0.4.5"
-source = "git+https://github.com/Stattek/RASCII?branch=master#b101ace1bf36af0b744dd0d6234f0fe0db9ba61c"
+name = "rascii_art_img"
+version = "0.4.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "39935b7a5df6945390af5d23cb4e02e01897a3dcba92a53fe94ed5f34925e60b"
 dependencies = [
  "ansi_term",
  "clap",
