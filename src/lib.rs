@@ -35,7 +35,7 @@ pub fn convert_to_ascii_png(
     imgii_options: &ImgiiOptions,
 ) -> Result<(), ImgiiError> {
     let lines = parse_ascii_to_2d_png_vec(input_file_name, rascii_options, imgii_options)?;
-    let final_image_writer = AsciiImageWriter::new_from_2d_vec(lines, imgii_options)?;
+    let final_image_writer = AsciiImageWriter::from_2d_vec(lines, imgii_options)?;
 
     // write the image
     final_image_writer
@@ -75,7 +75,7 @@ pub fn convert_to_ascii_gif(
         .map(|frame_part| {
             let (image_data, frame_metadata) = frame_part.into_frame_data();
             (
-                AsciiImageWriter::new_from_2d_vec(image_data, imgii_options),
+                AsciiImageWriter::from_2d_vec(image_data, imgii_options),
                 frame_metadata,
             )
         })

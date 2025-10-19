@@ -8,6 +8,7 @@ use crate::{
 };
 use rayon::prelude::*;
 
+/// An image writer which holds a rendered ASCII image.
 #[derive(Debug, Clone)]
 pub struct AsciiImageWriter {
     pub imagebuf: ImageData,
@@ -23,7 +24,8 @@ impl From<ImageData> for AsciiImageWriter {
 }
 
 impl AsciiImageWriter {
-    /// Builds a new image from a 2d `Vec` of image parts.
+    /// Builds a new image from a 2d `Vec` of image parts. Stitches an image together from a 2D
+    /// vector, converting the 2D vector into a single image.
     ///
     /// # Params
     /// - `parts` - A 2d `Vec` of images, with the `parts` array containing the rows (starting from 0
@@ -33,7 +35,8 @@ impl AsciiImageWriter {
     /// # Returns
     /// - An `Option` containing `Some` `AsciiImageWriter` upon success, or a
     ///   `None` upon failure.
-    pub fn new_from_2d_vec(
+    #[must_use]
+    pub fn from_2d_vec(
         parts: Vec<Vec<ImageData>>,
         pngii_options: &ImgiiOptions,
     ) -> Result<Self, ImgiiError> {
