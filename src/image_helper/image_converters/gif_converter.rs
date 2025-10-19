@@ -1,17 +1,16 @@
-use std::{fs::File, io::BufReader};
+use std::{error::Error, fs::File, io::BufReader};
 
 use crate::{
     ImgiiOptions,
     image_helper::{
-        error::{FileError, ImgiiError},
-        image_converters::generic_converter::render_ascii_generic,
+        error::ImgiiError, image_converters::generic_converter::render_ascii_generic,
         image_data::ImageData,
     },
 };
 
 use image::{AnimationDecoder, Delay, DynamicImage, codecs::gif::GifDecoder};
 use rascii_art::{RenderOptions, render_image_to};
-use rayon::iter::{IntoParallelIterator, IntoParallelRefIterator, ParallelIterator};
+use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 /// Holds the metadata for a frame that has been deconstructed.
 #[derive(Debug, Clone)]
@@ -203,34 +202,27 @@ pub fn read_as_deconstructed_rendered_gif_vec(
 fn read_deconstructed_gif(
     input_file_name: &str,
 ) -> Result<Vec<(DynamicImage, FrameMetadata)>, ImgiiError> {
-    let file_in = BufReader::new(
-        File::open(input_file_name)
-            .map_err(|err| FileError::new(String::from(input_file_name), err.kind()))?,
-    );
+    let file_in = BufReader::new(File::open(input_file_name)?);
 
     // TODO: probably want to make a decode error
     let decoder = match GifDecoder::new(file_in) {
         Ok(decoder) => decoder,
-        Err(_) => {
+        Err(err) => {
             // the input data in the gif was wrong
-            return Err(FileError::new(
-                String::from(input_file_name),
-                std::io::ErrorKind::InvalidData,
-            )
-            .into());
+
+            // convert to boxed err then convert to ImgiiError
+            let err_box: Box<dyn Error> = Box::new(err); // have to specify `dyn Error`. ugh.
+            return Err(err_box.into());
         }
     };
 
     // decode all of the frames of the gif and then convert each frame into a DynamicImage
     let frames = match decoder.into_frames().collect_frames() {
         Ok(frames) => frames,
-        Err(_) => {
+        Err(err) => {
             // the data is malformed in this GIF
-            return Err(FileError::new(
-                String::from(input_file_name),
-                std::io::ErrorKind::InvalidData,
-            )
-            .into());
+            let err_box: Box<dyn Error> = Box::new(err);
+            return Err(err_box.into());
         }
     };
     let ret = frames

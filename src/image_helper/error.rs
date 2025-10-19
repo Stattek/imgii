@@ -5,7 +5,7 @@ use std::{error::Error, fmt::Display};
 */
 
 /// An error that can be returned by Imgii. Represents errors when converting images.
-#[derive(Debug, Clone)]
+#[derive(Debug)]
 pub enum ImgiiError {
     /// Errors related to fonts.
     Font(FontError),
@@ -14,7 +14,8 @@ pub enum ImgiiError {
     /// Unknown, unspecified internal error.
     Internal(InternalError),
     /// I/O operation error.
-    Io(IoError),
+    Io(std::io::Error),
+    Other(OtherError),
 }
 
 /// Font error. Use this when something related to the font has gone wrong.
@@ -57,26 +58,14 @@ pub struct ParseIntError {
 #[derive(Debug, Clone)]
 pub struct InternalError;
 
-/// Contains IO errors.
+/// Contains other errors. These are errors that can be emitted from other crates for various
+/// reasons.
 ///
 /// Suberror of [`ImgiiError`].
-#[derive(Debug, Clone)]
-pub enum IoError {
-    File(FileError),
-}
-
-/// File I/O error.
-/// Doesn't actually implement Error, as it is easier to implement functionality in the super
-/// error, [`IoError`].
-///
-/// Suberror of [`IoError`].
-#[derive(Debug, Clone)]
-pub struct FileError {
-    /// The file name causing the error
-    file_name: String,
-
-    /// The type of IO error.
-    io_err: std::io::ErrorKind, // Since std::io::Error doesn't implement the Clone trait, we'll use this.
+#[derive(Debug)]
+pub struct OtherError {
+    // we can hold any other Error in here
+    other_err: Box<dyn Error>,
 }
 
 /*
@@ -97,6 +86,9 @@ impl Display for ImgiiError {
             }
             ImgiiError::Io(io_error) => {
                 write!(f, "{io_error}")
+            }
+            ImgiiError::Other(other_error) => {
+                write!(f, "{other_error}")
             }
         }
     }
@@ -132,17 +124,13 @@ impl Display for InternalError {
     }
 }
 
-impl Display for IoError {
+impl Display for OtherError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            IoError::File(file_error) => {
-                write!(
-                    f,
-                    "error occurred relating to file {} ({})",
-                    file_error.file_name, file_error.io_err
-                )
-            }
-        }
+        write!(
+            f,
+            "an error from another crate/boxed error occurred ({})",
+            self.other_err
+        )
     }
 }
 
@@ -154,6 +142,7 @@ impl Display for IoError {
 impl Error for FontError {}
 impl Error for ParseError {}
 impl Error for ImgiiError {}
+impl Error for OtherError {}
 
 /*
  * NOTE: Implement any `From` traits here.
@@ -187,9 +176,16 @@ impl From<InternalError> for ImgiiError {
     }
 }
 
-impl From<IoError> for ImgiiError {
-    fn from(value: IoError) -> Self {
+impl From<std::io::Error> for ImgiiError {
+    fn from(value: std::io::Error) -> Self {
         Self::Io(value)
+    }
+}
+
+// for converting from errors boxed at runtime
+impl From<Box<dyn Error>> for ImgiiError {
+    fn from(value: Box<dyn Error>) -> Self {
+        Self::Other(OtherError::new(value))
     }
 }
 
@@ -215,19 +211,6 @@ impl From<ParseIntError> for ParseError {
 impl From<ParseIntError> for ImgiiError {
     fn from(err: ParseIntError) -> Self {
         err.into()
-    }
-}
-
-// NOTE: no impl for From<std::io::Error> for IoError because that type can represent so many
-// different errors.
-impl From<FileError> for IoError {
-    fn from(value: FileError) -> Self {
-        Self::File(value)
-    }
-}
-impl From<FileError> for ImgiiError {
-    fn from(value: FileError) -> Self {
-        value.into()
     }
 }
 
@@ -261,13 +244,13 @@ impl ParseIntError {
     }
 }
 
-impl FileError {
-    /// Creates a new [`FileError`].
+impl OtherError {
+    /// Creates a new [`OtherError`] from a boxed error (created at runtime).
     ///
-    /// * `file_name`: The name of the file that caused the error.
-    /// * `io_err`: The kind of I/O error.
-    #[must_use]
-    pub fn new(file_name: String, io_err: std::io::ErrorKind) -> Self {
-        Self { file_name, io_err }
+    /// For use with other kinds of errors that the program can handle.
+    ///
+    /// * `other_err`: The other error, boxed.
+    pub fn new(other_err: Box<dyn Error>) -> Self {
+        Self { other_err }
     }
 }

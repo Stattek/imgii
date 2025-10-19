@@ -1,5 +1,10 @@
+use std::error::Error;
+
 use super::generic_converter::render_ascii_generic;
-use crate::{ImgiiOptions, image_helper::image_data::ImageData};
+use crate::{
+    ImgiiOptions,
+    image_helper::{error::ImgiiError, image_data::ImageData},
+};
 
 use image::open;
 use rascii_art::{RenderOptions, render_image_to};
@@ -18,8 +23,8 @@ pub fn parse_ascii_to_2d_png_vec(
     input_file_name: &str,
     rascii_options: &RenderOptions,
     imgii_options: &ImgiiOptions,
-) -> Vec<Vec<ImageData>> {
-    let ascii_text = read_png_as_ascii(input_file_name, rascii_options);
+) -> Result<Vec<Vec<ImageData>>, ImgiiError> {
+    let ascii_text = read_png_as_ascii(input_file_name, rascii_options)?;
     render_ascii_generic(imgii_options, ascii_text)
 }
 
@@ -31,13 +36,15 @@ pub fn parse_ascii_to_2d_png_vec(
 ///
 /// # Returns
 /// * `String` containing the colored image data as ASCII, colored using terminal escape sequences.
-fn read_png_as_ascii(input_file_name: &str, rascii_options: &RenderOptions) -> String {
+fn read_png_as_ascii(
+    input_file_name: &str,
+    rascii_options: &RenderOptions,
+) -> Result<String, ImgiiError> {
     // render the ascii text with RASCII
     let mut ascii_text = String::new();
-    let loaded_img = open(input_file_name)
-        .unwrap_or_else(|_| panic!("Could not open file ({})", input_file_name));
+    let loaded_img = open(input_file_name).map_err(|err| -> Box<dyn Error> { Box::new(err) })?;
     render_image_to(&loaded_img, &mut ascii_text, rascii_options)
-        .unwrap_or_else(|_| panic!("Error converting image {} to ASCII", input_file_name));
+        .map_err(|err| -> Box<dyn Error> { Box::new(err) })?;
 
-    ascii_text
+    Ok(ascii_text)
 }
