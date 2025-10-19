@@ -1,6 +1,7 @@
 use crate::{
     ImgiiOptions,
     image_helper::{
+        error::{ImgiiError, InvalidParameterError, ParseImageError},
         image_data::{ImageData, InternalImage},
         render_char_to_png::calculate_char_dimensions,
     },
@@ -35,9 +36,10 @@ impl AsciiImageWriter {
     pub fn new_from_2d_vec(
         parts: Vec<Vec<ImageData>>,
         pngii_options: &ImgiiOptions,
-    ) -> Option<Self> {
+    ) -> Result<Self, ImgiiError> {
         if parts.is_empty() || parts[0].is_empty() {
-            return None; // no image to build
+            // no image to build
+            return Err(InvalidParameterError::new(String::from("parts")).into());
         }
 
         let font_size = pngii_options.font_size();
@@ -51,12 +53,7 @@ impl AsciiImageWriter {
                 // calculate the width
                 width = line[0].as_buffer().width() * line.len() as u32;
             } else {
-                // TODO: this print, along with all others should be removed
-                eprintln!(
-                    "Skipped an empty line of images at line {}! Malformed data?",
-                    cur_line
-                );
-                return None;
+                return Err(ParseImageError::new(cur_line).into());
             }
         }
 
@@ -83,7 +80,7 @@ impl AsciiImageWriter {
         });
 
         // save the new image buffer
-        Some(Self {
+        Ok(Self {
             imagebuf: ImageData::new(canvas),
         })
     }

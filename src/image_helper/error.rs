@@ -13,6 +13,8 @@ pub enum ImgiiError {
     Parse(ParseError),
     /// Unknown, unspecified internal error.
     Internal(InternalError),
+    /// Error related to image.
+    Image(ImageError),
     /// I/O operation error.
     Io(std::io::Error),
     Other(OtherError),
@@ -58,6 +60,15 @@ pub struct ParseIntError {
 #[derive(Debug, Clone)]
 pub struct InternalError;
 
+/// Represents an error while creating an image.
+///
+/// Suberror of [`ImgiiError`].
+#[derive(Debug, Clone)]
+pub enum ImageError {
+    InvalidParameter(InvalidParameterError),
+    ParseImage(ParseImageError),
+}
+
 /// Contains other errors. These are errors that can be emitted from other crates for various
 /// reasons.
 ///
@@ -66,6 +77,23 @@ pub struct InternalError;
 pub struct OtherError {
     // we can hold any other Error in here
     other_err: Box<dyn Error>,
+}
+
+/// Represents an invalid parameter error when creating image.
+///
+/// Suberror of [`ImageError`].
+#[derive(Debug, Clone)]
+pub struct InvalidParameterError {
+    parameter_name: String,
+}
+
+/// Represents an error that occurred while parsing an image (in a 2D fashion).
+///
+/// Suberror of [`ImageError`].
+#[derive(Debug, Clone)]
+pub struct ParseImageError {
+    /// The row number of the image where this occurred.
+    image_row_number: usize,
 }
 
 /*
@@ -89,6 +117,9 @@ impl Display for ImgiiError {
             }
             ImgiiError::Other(other_error) => {
                 write!(f, "{other_error}")
+            }
+            ImgiiError::Image(image_error) => {
+                write!(f, "{image_error}")
             }
         }
     }
@@ -121,6 +152,27 @@ impl Display for ParseError {
 impl Display for InternalError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "an internal error has occurred")
+    }
+}
+
+impl Display for ImageError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            ImageError::InvalidParameter(invalid_parameter_error) => {
+                write!(
+                    f,
+                    "invalid parameter {} found",
+                    invalid_parameter_error.parameter_name
+                )
+            }
+            ImageError::ParseImage(parse_image_error) => {
+                write!(
+                    f,
+                    "parsing error found at row {} of the image",
+                    parse_image_error.image_row_number
+                )
+            }
+        }
     }
 }
 
@@ -179,6 +231,24 @@ impl From<InternalError> for ImgiiError {
 impl From<std::io::Error> for ImgiiError {
     fn from(value: std::io::Error) -> Self {
         Self::Io(value)
+    }
+}
+
+impl From<ImageError> for ImgiiError {
+    fn from(value: ImageError) -> Self {
+        Self::Image(value)
+    }
+}
+
+impl From<InvalidParameterError> for ImgiiError {
+    fn from(value: InvalidParameterError) -> Self {
+        Self::Image(ImageError::InvalidParameter(value))
+    }
+}
+
+impl From<ParseImageError> for ImgiiError {
+    fn from(value: ParseImageError) -> Self {
+        Self::Image(ImageError::ParseImage(value))
     }
 }
 
@@ -252,5 +322,24 @@ impl OtherError {
     /// * `other_err`: The other error, boxed.
     pub fn new(other_err: Box<dyn Error>) -> Self {
         Self { other_err }
+    }
+}
+
+impl InvalidParameterError {
+    /// Creates a new [`InvalidParameterError`].
+    ///
+    /// * `parameter_name`: The parameter name(s) that was invalid.
+    #[must_use]
+    pub fn new(parameter_name: String) -> Self {
+        Self { parameter_name }
+    }
+}
+
+impl ParseImageError {
+    /// Creates a new [`ParseImageError`].
+    ///
+    /// * `image_row_number`: The image row number.
+    pub fn new(image_row_number: usize) -> Self {
+        Self { image_row_number }
     }
 }
