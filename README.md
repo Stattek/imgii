@@ -4,8 +4,16 @@
 [![Crate](https://img.shields.io/crates/v/imgii.svg)](https://crates.io/crates/imgii)
 [![API](https://docs.rs/imgii/badge.svg)](https://docs.rs/imgii)
 
-imgii is an image rendering program and library that renders colored ANSI-encoded ASCII art as a PNG and saves the output file.
+`imgii` is an image rendering program and library that renders colored ANSI-encoded ASCII art as a PNG and saves the output file.
 Supports popular image types as input, such as PNG, JPEG, GIF, WEBP, and more.
+
+## Installing
+
+Install `imgii` as a binary:
+
+```bash
+cargo install imgii --locked
+```
 
 ## Building
 
@@ -119,7 +127,7 @@ RUST_LOG=info cargo run --release -- --background input_img.png output_ascii_img
 
 ## Supported Output Image Types
 
-imgii can currently output the following filetypes: \[png, gif\]. It supports more input types but
+`imgii` can currently output the following filetypes: \[png, gif\]. It supports more input types but
 is able to output images in these formats.
 
 ### Specifying Output Image Type
