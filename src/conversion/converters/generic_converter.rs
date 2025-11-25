@@ -30,22 +30,20 @@ pub fn render_ascii_generic(
     // contains lines of images
     // starting at 0 is the top, first line of the vector
     // inside an inner vec, 0 starts at the leftmost character of the line
-    let mut image_2d_vec = vec![];
+    let mut image_2d_vec = Vec::with_capacity(ascii_text.lines().count());
 
     // read every line in the file
     for line in ascii_text.lines() {
-        let mut char_images = vec![];
+        let mut char_images = Vec::with_capacity(line.len());
 
         // we need to find each character that we are going to write
         // we assume that there's only one character for each color
-        let control_char = '\u{1b}'; // represents the ansi escape character `\033`
-        let mut pattern_string = String::from(control_char);
-        let pattern = r"\[38;2;([0-9]+);([0-9]+);([0-9]+)m(.)";
-        pattern_string += pattern;
+        // NOTE: \u{1b} represents the \033 character
+        let pattern_str = concat!('\u{1b}', r"\[38;2;([0-9]+);([0-9]+);([0-9]+)m(.)");
 
         // TODO: if multiple threads are using this same regex object, maybe we could make it a
         // static global or compile it early so we can reuse it? Maybe as a "parser" object?
-        let re = Regex::new(&pattern_string)?;
+        let re = Regex::new(pattern_str)?;
 
         // create the image for this character
         for (_full_str, [r, g, b, the_str]) in re.captures_iter(line).map(|c| c.extract()) {
@@ -59,10 +57,13 @@ pub fn render_ascii_generic(
                 ParseIntError::new(String::from("blue"), String::from(the_str), err)
             })?;
 
+            // create this once since it will always be the same
+            let transparent_png = str_to_transparent_png(imgii_options);
+
             let generated_png = {
                 if the_str.trim().is_empty() {
                     // create a transparent png for a space
-                    str_to_transparent_png(imgii_options)
+                    transparent_png.clone()
                 } else {
                     // render the actual text if it's not empty
                     let colored = ColoredStr {
