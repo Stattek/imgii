@@ -15,7 +15,7 @@ pub struct ColoredStr {
 
 const BACKGROUND_PIXEL: Rgba<u8> = Rgba([0, 0, 0, u8::MAX]);
 
-/// Converts string data into a png
+/// Converts string data into a png.
 /// Uses `imageproc` to render text.
 pub fn str_to_png(data: ColoredStr, font: &FontRef<'_>, imgii_options: &ImgiiOptions) -> ImageData {
     let font_size = imgii_options.font_size();
