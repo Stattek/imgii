@@ -1,8 +1,7 @@
 use crate::{conversion::image_data::ImageData, options::ImgiiOptions};
 use ab_glyph::{FontRef, PxScale};
-use image::{DynamicImage, ImageBuffer, Rgba, RgbaImage};
-use imageproc::{definitions::Image, drawing::draw_text_mut};
-use rayon::prelude::*;
+use image::{ImageBuffer, Rgba};
+use imageproc::drawing::draw_text_mut;
 
 /// Represents a colored string to write.
 /// All characters are contiguous and share the same color.
