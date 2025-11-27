@@ -1,7 +1,7 @@
 use crate::{
     ImgiiOptions,
     conversion::{image_data::ImageData, render_char_to_png::str_to_png},
-    error::{FontError, ImgiiError, InternalError, ParseIntError},
+    error::{FontError, ImgiiError, ParseIntError},
 };
 
 use super::super::render_char_to_png::{ColoredStr, str_to_transparent_png};
@@ -47,7 +47,7 @@ pub(crate) fn render_ascii_generic(
     // width and height, in characters
     // NOTE: we can know height beforehand but we have to wait until we have parsed a whole line of
     // text to know the width
-    let (mut width, mut height) = (0, ascii_text.lines().count());
+    let (mut width, height) = (0, ascii_text.lines().count());
 
     // read every line in the file
     for (i, line) in ascii_text.lines().enumerate() {
@@ -119,7 +119,7 @@ pub(crate) fn render_ascii_generic(
 
     Ok(Imgii2dImage {
         image_2d: image_2d_vec,
-        width: width,
-        height: height,
+        width,
+        height,
     })
 }

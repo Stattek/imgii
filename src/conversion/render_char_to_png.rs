@@ -67,6 +67,7 @@ pub(crate) fn str_to_transparent_png(imgii_options: &ImgiiOptions) -> ImageData 
 ///
 /// # Returns
 /// (width, height) in a tuple
+#[inline]
 pub(crate) fn calculate_char_dimensions(font_size: u32) -> (u32, u32) {
     (font_size / 2, font_size)
 }

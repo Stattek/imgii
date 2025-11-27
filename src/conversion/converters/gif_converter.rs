@@ -1,10 +1,7 @@
 use std::{fs::File, io::BufReader};
 
 use crate::{
-    conversion::{
-        converters::generic_converter::{Imgii2dImage, render_ascii_generic},
-        image_data::ImageData,
-    },
+    conversion::converters::generic_converter::{Imgii2dImage, render_ascii_generic},
     error::{BoxedDynErr, ImgiiError},
     options::{ImgiiOptions, RasciiOptions},
 };
@@ -80,6 +77,7 @@ impl RenderedFramePart {
     /// * `image_data`: The image data.
     /// * `frame_metadata`: The frame metadata.
     #[must_use]
+    #[allow(dead_code)]
     pub(crate) fn new(image_data: Imgii2dImage, frame_metadata: FrameMetadata) -> Self {
         Self {
             image_data,
@@ -89,12 +87,14 @@ impl RenderedFramePart {
 
     /// Gets the image data for this frame.
     #[must_use]
+    #[allow(dead_code)]
     pub(crate) fn image_data(&self) -> &Imgii2dImage {
         &self.image_data
     }
 
     /// Gets the metadata for this frame.
     #[must_use]
+    #[allow(dead_code)]
     pub(crate) fn frame_metadata(&self) -> &FrameMetadata {
         &self.frame_metadata
     }
@@ -102,6 +102,7 @@ impl RenderedFramePart {
     /// Moves out of this RenderedFramePart, returning a tuple containing the image data followed
     /// by metadata.
     #[must_use]
+    #[allow(dead_code)]
     pub(crate) fn into_frame_data(self) -> (Imgii2dImage, FrameMetadata) {
         (self.image_data, self.frame_metadata)
     }

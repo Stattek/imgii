@@ -1,6 +1,6 @@
 use super::generic_converter::render_ascii_generic;
 use crate::{
-    conversion::{converters::generic_converter::Imgii2dImage, image_data::ImageData},
+    conversion::converters::generic_converter::Imgii2dImage,
     error::{BoxedDynErr, ImgiiError},
     options::{ImgiiOptions, RasciiOptions},
 };
