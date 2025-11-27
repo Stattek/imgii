@@ -1,3 +1,5 @@
+use std::collections::{HashMap, HashSet};
+
 use crate::{
     ImgiiOptions,
     conversion::{image_data::ImageData, render_char_to_png::str_to_png},
@@ -49,6 +51,9 @@ pub(crate) fn render_ascii_generic(
     // text to know the width
     let (mut width, height) = (0, ascii_text.lines().count());
 
+    // hold already rendered images so we don't have to render them more than once
+    let mut rendered_images: HashMap<ColoredStr, ImageData> = HashMap::new();
+
     // read every line in the file
     for (i, line) in ascii_text.lines().enumerate() {
         // we need to find each character that we are going to write
@@ -88,7 +93,21 @@ pub(crate) fn render_ascii_generic(
                         string: String::from(the_str),
                     };
 
-                    str_to_png(colored, &font, imgii_options)
+                    // check if this image was already rendered before
+                    let rendered_img = rendered_images.get(&colored);
+                    match rendered_img {
+                        // PERF: what is the performance difference between doing a clone vs Rc
+                        Some(rendered_img) => rendered_img.clone(),
+                        None => {
+                            let image_data = str_to_png(&colored, &font, imgii_options);
+                            let copied_data = image_data.clone();
+                            let result = rendered_images.insert(colored, image_data);
+                            if result.is_some() {
+                                panic!("this key should not exist already in the hash map");
+                            }
+                            copied_data
+                        }
+                    }
                 }
             };
 
