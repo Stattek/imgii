@@ -17,9 +17,9 @@ const FONT_BYTES: &[u8] = include_bytes!("../../../fonts/UbuntuMono.ttf");
 /// Simple struct for holding a 2d image with its width and height.
 #[derive(Clone, Debug)]
 pub(crate) struct Imgii2dImage {
-    pub image_2d: Vec<ImageData>,
-    pub width: usize,
-    pub height: usize,
+    pub(crate) image_2d: Vec<ImageData>,
+    pub(crate) width: usize,
+    pub(crate) height: usize,
 }
 
 /// Generic function for parsing and rendering ASCII into an image.

@@ -1,7 +1,7 @@
 //! Imgii is a library for converting images to ASCII and rendering as different image types. For
 //! example, it can take a PNG input and convert it into ASCII, render it, and save it.
 
-pub mod conversion;
+pub(crate) mod conversion;
 pub mod error;
 pub mod image_types;
 pub mod options;

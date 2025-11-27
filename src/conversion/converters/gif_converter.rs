@@ -50,25 +50,25 @@ pub(crate) struct RenderedFramePart {
 impl FrameMetadata {
     /// Creates a new [`FrameMetadata`].
     #[must_use]
-    pub fn new(left: u32, top: u32, delay: Delay) -> Self {
+    pub(crate) fn new(left: u32, top: u32, delay: Delay) -> Self {
         Self { left, top, delay }
     }
 
     /// Gets the x offset for this frame.
     #[must_use]
-    pub fn left(&self) -> u32 {
+    pub(crate) fn left(&self) -> u32 {
         self.left
     }
 
     /// Gets the y offset for this frame.
     #[must_use]
-    pub fn top(&self) -> u32 {
+    pub(crate) fn top(&self) -> u32 {
         self.top
     }
 
     /// Gets the delay of this frame.
     #[must_use]
-    pub fn delay(&self) -> Delay {
+    pub(crate) fn delay(&self) -> Delay {
         self.delay
     }
 }
@@ -80,7 +80,7 @@ impl RenderedFramePart {
     /// * `image_data`: The image data.
     /// * `frame_metadata`: The frame metadata.
     #[must_use]
-    pub fn new(image_data: Imgii2dImage, frame_metadata: FrameMetadata) -> Self {
+    pub(crate) fn new(image_data: Imgii2dImage, frame_metadata: FrameMetadata) -> Self {
         Self {
             image_data,
             frame_metadata,
@@ -89,20 +89,20 @@ impl RenderedFramePart {
 
     /// Gets the image data for this frame.
     #[must_use]
-    pub fn image_data(&self) -> &Imgii2dImage {
+    pub(crate) fn image_data(&self) -> &Imgii2dImage {
         &self.image_data
     }
 
     /// Gets the metadata for this frame.
     #[must_use]
-    pub fn frame_metadata(&self) -> &FrameMetadata {
+    pub(crate) fn frame_metadata(&self) -> &FrameMetadata {
         &self.frame_metadata
     }
 
     /// Moves out of this RenderedFramePart, returning a tuple containing the image data followed
     /// by metadata.
     #[must_use]
-    pub fn into_frame_data(self) -> (Imgii2dImage, FrameMetadata) {
+    pub(crate) fn into_frame_data(self) -> (Imgii2dImage, FrameMetadata) {
         (self.image_data, self.frame_metadata)
     }
 }
@@ -114,7 +114,7 @@ impl NonRenderedFramePart {
     /// * `image_ascii`: The ASCII string representation of an image.
     /// * `frame_metadata`: The frame metadata.
     #[must_use]
-    pub fn new(image_ascii: String, frame_metadata: FrameMetadata) -> Self {
+    pub(crate) fn new(image_ascii: String, frame_metadata: FrameMetadata) -> Self {
         Self {
             image_ascii,
             frame_metadata,

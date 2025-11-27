@@ -11,8 +11,8 @@ use rayon::prelude::*;
 
 /// An image writer which holds a rendered ASCII image.
 #[derive(Debug, Clone)]
-pub struct AsciiImageWriter {
-    pub imagebuf: ImageData,
+pub(crate) struct AsciiImageWriter {
+    pub(crate) imagebuf: ImageData,
 }
 
 impl From<ImageData> for AsciiImageWriter {
