@@ -1,7 +1,7 @@
 use std::{fs::File, io::BufReader};
 
 use crate::{
-    conversion::{converters::generic_converter::render_ascii_generic, image_data::ImageData},
+    conversion::converters::generic_converter::{Imgii2dImage, render_ascii_generic},
     error::{BoxedDynErr, ImgiiError},
     options::{ImgiiOptions, RasciiOptions},
 };
@@ -12,7 +12,7 @@ use rayon::iter::{IntoParallelIterator, ParallelIterator};
 
 /// Holds the metadata for a frame that has been deconstructed.
 #[derive(Debug, Clone)]
-pub struct FrameMetadata {
+pub(crate) struct FrameMetadata {
     /// The left value for this frame.
     left: u32,
     /// The top value for this frame.
@@ -24,7 +24,7 @@ pub struct FrameMetadata {
 /// Holds the deconstructed frame data for a single frame, before it is converted to image data.
 /// Holds the raw ASCII string and frame metadata.
 #[derive(Debug, Clone)]
-pub struct NonRenderedFramePart {
+pub(crate) struct NonRenderedFramePart {
     /// The ASCII representation of the frame.
     image_ascii: String,
     /// The frame metadata for this frame.
@@ -33,9 +33,9 @@ pub struct NonRenderedFramePart {
 
 /// Holds the deconstructed frame data for a single frame that has been rendered to a 2D vector.
 #[derive(Debug, Clone)]
-pub struct RenderedFramePart {
+pub(crate) struct RenderedFramePart {
     /// The image data with the rendered image data for this frame as a 2D vector.
-    image_data: Vec<Vec<ImageData>>,
+    image_data: Imgii2dImage,
     /// The frame metadata for this frame.
     frame_metadata: FrameMetadata,
 }
@@ -47,25 +47,25 @@ pub struct RenderedFramePart {
 impl FrameMetadata {
     /// Creates a new [`FrameMetadata`].
     #[must_use]
-    pub fn new(left: u32, top: u32, delay: Delay) -> Self {
+    pub(crate) fn new(left: u32, top: u32, delay: Delay) -> Self {
         Self { left, top, delay }
     }
 
     /// Gets the x offset for this frame.
     #[must_use]
-    pub fn left(&self) -> u32 {
+    pub(crate) fn left(&self) -> u32 {
         self.left
     }
 
     /// Gets the y offset for this frame.
     #[must_use]
-    pub fn top(&self) -> u32 {
+    pub(crate) fn top(&self) -> u32 {
         self.top
     }
 
     /// Gets the delay of this frame.
     #[must_use]
-    pub fn delay(&self) -> Delay {
+    pub(crate) fn delay(&self) -> Delay {
         self.delay
     }
 }
@@ -77,7 +77,8 @@ impl RenderedFramePart {
     /// * `image_data`: The image data.
     /// * `frame_metadata`: The frame metadata.
     #[must_use]
-    pub fn new(image_data: Vec<Vec<ImageData>>, frame_metadata: FrameMetadata) -> Self {
+    #[allow(dead_code)]
+    pub(crate) fn new(image_data: Imgii2dImage, frame_metadata: FrameMetadata) -> Self {
         Self {
             image_data,
             frame_metadata,
@@ -86,20 +87,23 @@ impl RenderedFramePart {
 
     /// Gets the image data for this frame.
     #[must_use]
-    pub fn image_data(&self) -> &Vec<Vec<ImageData>> {
+    #[allow(dead_code)]
+    pub(crate) fn image_data(&self) -> &Imgii2dImage {
         &self.image_data
     }
 
     /// Gets the metadata for this frame.
     #[must_use]
-    pub fn frame_metadata(&self) -> &FrameMetadata {
+    #[allow(dead_code)]
+    pub(crate) fn frame_metadata(&self) -> &FrameMetadata {
         &self.frame_metadata
     }
 
     /// Moves out of this RenderedFramePart, returning a tuple containing the image data followed
     /// by metadata.
     #[must_use]
-    pub fn into_frame_data(self) -> (Vec<Vec<ImageData>>, FrameMetadata) {
+    #[allow(dead_code)]
+    pub(crate) fn into_frame_data(self) -> (Imgii2dImage, FrameMetadata) {
         (self.image_data, self.frame_metadata)
     }
 }
@@ -111,7 +115,7 @@ impl NonRenderedFramePart {
     /// * `image_ascii`: The ASCII string representation of an image.
     /// * `frame_metadata`: The frame metadata.
     #[must_use]
-    pub fn new(image_ascii: String, frame_metadata: FrameMetadata) -> Self {
+    pub(crate) fn new(image_ascii: String, frame_metadata: FrameMetadata) -> Self {
         Self {
             image_ascii,
             frame_metadata,
@@ -129,7 +133,7 @@ impl NonRenderedFramePart {
 ///
 /// * `input_file_name`: The input file name.
 /// * `rascii_options`: The RASCII options for converting to ASCII.
-pub fn read_gif_as_deconstructed_ascii(
+pub(crate) fn read_gif_as_deconstructed_ascii(
     input_file_name: &str,
     rascii_options: &RasciiOptions,
 ) -> Result<Vec<Option<NonRenderedFramePart>>, ImgiiError> {
@@ -159,7 +163,7 @@ pub fn read_gif_as_deconstructed_ascii(
 ///
 /// * `input_file_name`: the input file name.
 /// * `imgii_options`: the imgii options for rendering ascii.
-pub fn read_as_deconstructed_rendered_gif_vec(
+pub(crate) fn read_as_deconstructed_rendered_gif_vec(
     input_file_name: &str,
     imgii_options: &ImgiiOptions,
 ) -> Result<Vec<Option<RenderedFramePart>>, ImgiiError> {
@@ -196,7 +200,7 @@ pub fn read_as_deconstructed_rendered_gif_vec(
 ///
 /// # Returns
 /// `Err()` upon error reading the GIF, `Ok()` otherwise.
-pub fn read_deconstructed_gif(
+pub(crate) fn read_deconstructed_gif(
     input_file_name: &str,
 ) -> Result<Vec<(DynamicImage, FrameMetadata)>, ImgiiError> {
     let file_in = BufReader::new(File::open(input_file_name)?);

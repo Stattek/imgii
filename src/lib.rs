@@ -1,7 +1,7 @@
 //! Imgii is a library for converting images to ASCII and rendering as different image types. For
 //! example, it can take a PNG input and convert it into ASCII, render it, and save it.
 
-pub mod conversion;
+pub(crate) mod conversion;
 pub mod error;
 pub mod image_types;
 pub mod options;
@@ -78,7 +78,7 @@ pub fn convert_to_ascii_png(
     imgii_options: &ImgiiOptions,
 ) -> Result<(), ImgiiError> {
     let lines = parse_ascii_to_2d_png_vec(input_file_name, imgii_options)?;
-    let final_image_writer = AsciiImageWriter::from_2d_vec(lines, imgii_options)?;
+    let final_image_writer = AsciiImageWriter::from_2d_vec(lines)?;
 
     // write the image
     final_image_writer
@@ -152,10 +152,7 @@ pub fn convert_to_ascii_gif(
         .filter_map(|frame_part| frame_part)
         .map(|frame_part| {
             let (image_data, frame_metadata) = frame_part.into_frame_data();
-            (
-                AsciiImageWriter::from_2d_vec(image_data, imgii_options),
-                frame_metadata,
-            )
+            (AsciiImageWriter::from_2d_vec(image_data), frame_metadata)
         })
         .collect::<Vec<_>>();
 
