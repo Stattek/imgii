@@ -5,7 +5,9 @@ use imageproc::drawing::draw_text_mut;
 
 /// Represents a colored string to write.
 /// All characters are contiguous and share the same color.
-#[derive(Debug, Clone)]
+/// Is hashable to act as a key for already rendered
+/// images, to prevent rendering them more than once.
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 pub(crate) struct ColoredStr {
     pub(crate) red: u8,
     pub(crate) blue: u8,
@@ -18,7 +20,7 @@ const BACKGROUND_PIXEL: Rgba<u8> = Rgba([0, 0, 0, u8::MAX]);
 /// Converts string data into a png.
 /// Uses `imageproc` to render text.
 pub(crate) fn str_to_png(
-    data: ColoredStr,
+    data: &ColoredStr,
     font: &FontRef<'_>,
     imgii_options: &ImgiiOptions,
 ) -> ImageData {

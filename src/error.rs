@@ -85,6 +85,7 @@ pub struct InternalError;
 pub enum ImageError {
     InvalidParameter(InvalidParameterError),
     ParseImage(ParseImageError),
+    Render(RenderError),
 }
 
 /// Contains other errors. These are errors that can be emitted from other crates for various
@@ -105,13 +106,23 @@ pub struct InvalidParameterError {
     parameter_name: String,
 }
 
-/// Represents an error that occurred while parsing an image (in a 2D fashion).
+/// Represents an error that occurred while parsing an image.
 ///
 /// Suberror of [`ImageError`].
 #[derive(Debug, Clone)]
 pub struct ParseImageError {
     /// The row number of the image where this occurred.
     image_row_number: usize,
+}
+
+/// Represents an error that occurred while rendering an image.
+///
+/// Suberror of [`ImageError`].
+#[derive(Debug, Clone)]
+pub struct RenderError {
+    /// The reason for the render error. Since this error is intended to handle various internals
+    /// that aren't well represented by errors, this will explain why the error ocurred.
+    reason: String,
 }
 
 /*
@@ -190,6 +201,13 @@ impl Display for ImageError {
                     parse_image_error.image_row_number
                 )
             }
+            ImageError::Render(render_error) => {
+                write!(
+                    f,
+                    "error occurred while rendering image ({})",
+                    render_error.reason
+                )
+            }
         }
     }
 }
@@ -223,8 +241,8 @@ impl Error for OtherError {}
 // do another From impl for the errors that can be converted into a suberror type too.
 //
 // The suberrors can implement From for anything that can be converted into them specifically, then
-// for each of those, a simple From can be implemented for ImgiiError with a call to `.into()`,
-// which will convert into the suberror type, then it should convert into the ImgiiError type.
+// for each of those, a simple From can be implemented for ImgiiError so we can call `.into()`
+// to convert a suberror type into the main ImgiiError type.
 //
 // This makes it easier to maintain, as more errors are added. This pattern should be replicated for
 // suberrors which have their own suberrors.
@@ -267,6 +285,12 @@ impl From<InvalidParameterError> for ImgiiError {
 impl From<ParseImageError> for ImgiiError {
     fn from(value: ParseImageError) -> Self {
         Self::Image(ImageError::ParseImage(value))
+    }
+}
+
+impl From<RenderError> for ImgiiError {
+    fn from(value: RenderError) -> Self {
+        Self::Image(ImageError::Render(value))
     }
 }
 
@@ -359,5 +383,15 @@ impl ParseImageError {
     #[must_use]
     pub fn new(image_row_number: usize) -> Self {
         Self { image_row_number }
+    }
+}
+
+impl RenderError {
+    /// Creates a new [`RenderError`].
+    ///
+    /// * `reason`: The reason for the render error.
+    #[must_use]
+    pub fn new(reason: String) -> Self {
+        Self { reason }
     }
 }
