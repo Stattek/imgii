@@ -3,7 +3,6 @@ use clap::builder as clap_builder;
 use clap::builder::styling as clap_styling;
 use imgii::error::FontError;
 use imgii::error::ImgiiError;
-use imgii::fonts;
 use imgii::fonts::list_fonts;
 use imgii::fonts::load_monospace_font;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
