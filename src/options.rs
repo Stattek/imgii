@@ -8,6 +8,8 @@ pub use rascii_art_img::{
     convert_string_to_str_vec,
 };
 
+use crate::error::ImgiiError;
+
 const DEFAULT_CHAR_FONT_SIZE: u32 = 16;
 
 // NOTE: we don't want to ever make members of ImgiiOptions public so users can't cause imgii to
@@ -16,6 +18,12 @@ const DEFAULT_CHAR_FONT_SIZE: u32 = 16;
 /// Options for creating the output ASCII PNG.
 #[derive(Debug, Clone)]
 pub struct ImgiiOptions<'a> {
+    /// The loaded bytes containing the font.
+    font: Vec<u8>,
+
+    /// The font name.
+    font_name: String,
+
     /// The font size of the output image.
     font_size: u32,
 
@@ -31,12 +39,32 @@ pub struct ImgiiOptions<'a> {
 impl<'a> ImgiiOptions<'a> {
     /// Creates a new image options object.
     #[must_use]
-    fn new(font_size: u32, background: bool, rascii_options: RasciiOptions<'a>) -> Self {
+    fn new(
+        font: Vec<u8>,
+        font_name: String,
+        font_size: u32,
+        background: bool,
+        rascii_options: RasciiOptions<'a>,
+    ) -> Self {
         Self {
+            font,
+            font_name,
             font_size,
             background,
             rascii_options,
         }
+    }
+
+    /// Gets the font data.
+    #[must_use]
+    pub fn font(&self) -> &Vec<u8> {
+        &self.font
+    }
+
+    /// Gets the font name.
+    #[must_use]
+    pub fn font_name(&self) -> &str {
+        &self.font_name
     }
 
     /// Gets the font size to use to generate the image.
@@ -46,11 +74,13 @@ impl<'a> ImgiiOptions<'a> {
     }
 
     /// Gets the background flag. If true, sets a background behind the output image.
+    #[must_use]
     pub fn background(&self) -> bool {
         self.background
     }
 
     /// Gets the RASCII options.
+    #[must_use]
     pub fn rascii_options(&self) -> &RasciiOptions<'a> {
         &self.rascii_options
     }
@@ -59,6 +89,12 @@ impl<'a> ImgiiOptions<'a> {
 /// Builder for [`ImgiiOptions`]. Intended way to create options for Imgii.
 #[derive(Debug, Clone)]
 pub struct ImgiiOptionsBuilder<'a> {
+    /// The name of the installed system font to render
+    font: Option<Vec<u8>>,
+
+    /// The font name.
+    font_name: Option<String>,
+
     /// The font size of the output image.
     font_size: u32,
 
@@ -72,6 +108,8 @@ pub struct ImgiiOptionsBuilder<'a> {
 impl<'a> Default for ImgiiOptionsBuilder<'a> {
     fn default() -> Self {
         Self {
+            font: None,
+            font_name: None,
             font_size: DEFAULT_CHAR_FONT_SIZE,
             background: false,
             rascii_options: RasciiOptions::default()
@@ -86,6 +124,22 @@ impl<'a> ImgiiOptionsBuilder<'a> {
     /// [`ImgiiOptionsBuilder::default()`].
     pub fn new() -> Self {
         Self::default()
+    }
+
+    /// Sets the font of the output [`ImgiiOptions`].
+    ///
+    /// * `font`: The loaded font bytes.
+    pub fn font(mut self, font: Vec<u8>) -> Self {
+        self.font = Some(font);
+        self
+    }
+
+    /// Sets the font name of the output [`ImgiiOptions`].
+    ///
+    /// * `font_name`: The name of the font.
+    pub fn font_name(mut self, font_name: String) -> Self {
+        self.font_name = Some(font_name);
+        self
     }
 
     /// Sets the font size of the output [`ImgiiOptions`].
@@ -105,8 +159,18 @@ impl<'a> ImgiiOptionsBuilder<'a> {
     }
 
     /// Builds a new [`ImgiiOptions`] instance from chosen values in this builder.
-    pub fn build(&self) -> ImgiiOptions<'a> {
-        ImgiiOptions::new(self.font_size, self.background, self.rascii_options.clone())
+    pub fn build(&self) -> Result<ImgiiOptions<'a>, ImgiiError> {
+        let (Some(font), Some(font_name)) = (self.font.clone(), self.font_name.clone()) else {
+            return Err(ImgiiError::InvalidArgument);
+        };
+
+        Ok(ImgiiOptions::new(
+            font,
+            font_name,
+            self.font_size,
+            self.background,
+            self.rascii_options.clone(),
+        ))
     }
 
     /*
