@@ -1,3 +1,5 @@
+//! Contains helper functionality for handling fonts.
+
 use font_loader::system_fonts;
 
 /// Lists all of the fonts that are installed on the system.

@@ -161,6 +161,7 @@ pub fn convert_to_ascii_gif(
         .into_par_iter()
         .filter_map(|(writer, frame_metadata)| match writer {
             // let's just get rid of errors and try our best with what we've got
+            // NOTE: this will discard frames with errors.
             Ok(writer) => Some((writer, frame_metadata)),
             Err(_) => None,
         })

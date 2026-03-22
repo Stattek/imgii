@@ -1,3 +1,5 @@
+//! Handles rendering for GIF.
+
 use std::{fs::File, io::BufReader};
 
 use crate::{

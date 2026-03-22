@@ -1,3 +1,5 @@
+//! The main file for the `imgii` CLI tool.
+
 use clap::Parser;
 use clap::builder as clap_builder;
 use clap::builder::styling as clap_styling;

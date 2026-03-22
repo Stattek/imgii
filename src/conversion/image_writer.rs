@@ -1,3 +1,5 @@
+//! Implementation for writing ascii as an image.
+
 use crate::{
     conversion::{
         converters::generic_converter::Imgii2dImage,

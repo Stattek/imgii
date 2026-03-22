@@ -1,3 +1,5 @@
+//! Error implementation for `imgii` errors.
+
 use thiserror::Error;
 
 /// An error that can be returned by Imgii. Represents errors when converting images.

@@ -1,3 +1,5 @@
+//! Generic converter implementation for rendering ASCII as individual images.
+
 use std::{collections::HashMap, sync::Arc};
 
 use crate::{

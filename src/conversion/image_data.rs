@@ -1,3 +1,5 @@
+//! Implementation for generic image data.
+
 use image::ImageBuffer;
 
 // easier to read

@@ -1,3 +1,5 @@
+//! Implementation for rendering a character as an image.
+
 use crate::{conversion::image_data::ImageData, options::ImgiiOptions};
 use ab_glyph::{FontRef, PxScale};
 use image::{ImageBuffer, Rgba};
