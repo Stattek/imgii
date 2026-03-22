@@ -1,397 +1,88 @@
-use std::{error::Error, fmt::Display};
-
-/*
-* NOTE: Struct definitions go below.
-*/
-
-/// This is the type that we want to use for boxed errors to make sure they're thread-safe.
-type DynError = dyn Error + Send + Sync;
-
-/// Boxed error type for converting to [`ImgiiError`].
-///
-/// # Example
-///
-/// This is useful for errors from other crates, which we don't know or care about their errors.
-///
-/// ```
-/// use image::open;
-/// use imgii::error::BoxedDynErr;
-/// // open an image, convert it into an ImgiiError
-/// let input_file_name = "test.png";
-/// let loaded_img = open(input_file_name).map_err(|err| -> BoxedDynErr { Box::new(err) });
-/// ```
-pub type BoxedDynErr = Box<DynError>;
+use thiserror::Error;
 
 /// An error that can be returned by Imgii. Represents errors when converting images.
-#[derive(Debug)]
+#[derive(Error, Debug)]
 pub enum ImgiiError {
     /// Errors related to fonts.
-    Font(FontError),
+    #[error("{0}")]
+    Font(#[from] FontError),
     /// Error related to parsing ASCII.
-    Parse(ParseError),
-    /// Unknown, unspecified internal error.
-    Internal(InternalError),
+    #[error("{0}")]
+    Parse(#[from] ParseError),
     /// Error related to image.
-    Image(ImageError),
+    #[error("{0}")]
+    Image(#[from] ImageError),
     /// I/O operation error.
-    Io(std::io::Error),
-    Other(OtherError),
+    #[error("{0}")]
+    Io(#[from] std::io::Error),
+    #[error("{0}")]
+    Other(#[from] anyhow::Error),
+    /// Invalid argument error.
+    #[error("invalid argument(s) provided")]
+    InvalidArgument,
+    /// Unknown, unspecified internal error.
+    #[error("an internal error has occurred")]
+    Internal,
 }
 
-/// Font error. Use this when something related to the font has gone wrong.
-///
-/// Suberror of [`ImgiiError`].
-#[derive(Debug, Clone)]
-pub struct FontError {
-    font_name: String,
+#[derive(Debug, Error, Clone)]
+pub enum FontError {
+    #[error("could not load font {font_name}")]
+    FontLoad { font_name: String },
 }
 
 /// ASCII text parsing error. Use this when parsing ASCII text and something goes wrong.
 ///
 /// Suberror of [`ImgiiError`].
-#[derive(Debug, Clone)]
+#[derive(Error, Debug, Clone)]
 pub enum ParseError {
     /// Handles regex errors.
-    Regex(regex::Error),
+    #[error("imgii regular expression failed ({0})")]
+    Regex(#[from] regex::Error),
     /// Handles errors related to parsing values.
-    ParseValue(ParseIntError),
+    #[error("could not parse int value from string due to {0}")]
+    ParseInt(#[from] std::num::ParseIntError),
+    /// Handles errors related to parsing colors from colored output
+    #[error("could not parse value {value_name} from string ({the_str}), parse error ({err})")]
+    ParseColor {
+        /// The name of the value to parse.
+        value_name: String,
+        /// The string that parsing was attempted on but failed.
+        the_str: String,
+        /// The `std::num::ParseIntError` that was emitted upon failure to parse.
+        err: std::num::ParseIntError,
+    },
 }
-
-/// Regular expression compiler error.
-/// Doesn't actually implement Error, as it is easier to implement functionality in the super
-/// error, [`ParseError`].
-///
-/// Suberror of [`ParseError`].
-#[derive(Debug, Clone)]
-pub struct ParseIntError {
-    /// The name of the value to parse.
-    value_name: String,
-    /// The string that parsing was attempted on but failed.
-    the_str: String,
-    /// The `std::num::ParseIntError` that was emitted upon failure to parse.
-    err: std::num::ParseIntError,
-}
-
-/// Some other, unknown internal error.
-///
-/// Suberror of [`ImgiiError`].
-#[derive(Debug, Clone)]
-pub struct InternalError;
 
 /// Represents an error while creating an image.
 ///
 /// Suberror of [`ImgiiError`].
-#[derive(Debug, Clone)]
+#[derive(Error, Debug, Clone)]
 pub enum ImageError {
-    InvalidParameter(InvalidParameterError),
-    ParseImage(ParseImageError),
-    Render(RenderError),
+    #[error("invalid parameter {parameter_name} found")]
+    InvalidParameter { parameter_name: String },
+    #[error("parsing error found at row {image_row_number} of the image")]
+    ParseImage {
+        /// The row number of the image where this occurred.
+        image_row_number: usize,
+    },
+    #[error("rendering failed because {reason}")]
+    Render {
+        /// The reason for the render error. Since this error is intended to handle various internals
+        /// that aren't well represented by errors, this will explain why the error ocurred.
+        reason: String,
+    },
 }
-
-/// Contains other errors. These are errors that can be emitted from other crates for various
-/// reasons.
-///
-/// Suberror of [`ImgiiError`].
-#[derive(Debug)]
-pub struct OtherError {
-    // we can hold any other Error in here
-    other_err: BoxedDynErr,
-}
-
-/// Represents an invalid parameter error when creating image.
-///
-/// Suberror of [`ImageError`].
-#[derive(Debug, Clone)]
-pub struct InvalidParameterError {
-    parameter_name: String,
-}
-
-/// Represents an error that occurred while parsing an image.
-///
-/// Suberror of [`ImageError`].
-#[derive(Debug, Clone)]
-pub struct ParseImageError {
-    /// The row number of the image where this occurred.
-    image_row_number: usize,
-}
-
-/// Represents an error that occurred while rendering an image.
-///
-/// Suberror of [`ImageError`].
-#[derive(Debug, Clone)]
-pub struct RenderError {
-    /// The reason for the render error. Since this error is intended to handle various internals
-    /// that aren't well represented by errors, this will explain why the error ocurred.
-    reason: String,
-}
-
-/*
- * NOTE: Implement `Display` below for errors that are intended to also implement Error.
- */
-
-impl Display for ImgiiError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ImgiiError::Font(font_error) => {
-                write!(f, "{font_error}")
-            }
-            ImgiiError::Parse(parse_error) => {
-                write!(f, "{parse_error}")
-            }
-            ImgiiError::Internal(internal_error) => {
-                write!(f, "{internal_error}")
-            }
-            ImgiiError::Io(io_error) => {
-                write!(f, "{io_error}")
-            }
-            ImgiiError::Other(other_error) => {
-                write!(f, "{other_error}")
-            }
-            ImgiiError::Image(image_error) => {
-                write!(f, "{image_error}")
-            }
-        }
-    }
-}
-
-impl Display for FontError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "could not read font {}", self.font_name)
-    }
-}
-
-impl Display for ParseError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            Self::Regex(err) => {
-                // let's just print their error out with ours
-                write!(f, "imgii regular expression failed ({})", err)
-            }
-            Self::ParseValue(err) => {
-                write!(
-                    f,
-                    "could not parse value {} from string ({}), parse error ({})",
-                    err.value_name, err.the_str, err.err
-                )
-            }
-        }
-    }
-}
-
-impl Display for InternalError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "an internal error has occurred")
-    }
-}
-
-impl Display for ImageError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        match self {
-            ImageError::InvalidParameter(invalid_parameter_error) => {
-                write!(
-                    f,
-                    "invalid parameter {} found",
-                    invalid_parameter_error.parameter_name
-                )
-            }
-            ImageError::ParseImage(parse_image_error) => {
-                write!(
-                    f,
-                    "parsing error found at row {} of the image",
-                    parse_image_error.image_row_number
-                )
-            }
-            ImageError::Render(render_error) => {
-                write!(
-                    f,
-                    "error occurred while rendering image ({})",
-                    render_error.reason
-                )
-            }
-        }
-    }
-}
-
-impl Display for OtherError {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "an error from another crate/boxed error occurred ({})",
-            self.other_err
-        )
-    }
-}
-
-/*
- * NOTE: Implement Error for error types below.
- */
-
-// we don't need to implement anything since there are default implementations for this trait
-impl Error for FontError {}
-impl Error for ParseError {}
-impl Error for ImgiiError {}
-impl Error for OtherError {}
 
 /*
  * NOTE: Implement any `From` traits here.
  */
 
 // NOTE:
-// ImgiiError should only have to implement From for all of its direct suberrors, but Rust makes me
-// do another From impl for the errors that can be converted into a suberror type too.
-//
-// The suberrors can implement From for anything that can be converted into them specifically, then
-// for each of those, a simple From can be implemented for ImgiiError so we can call `.into()`
-// to convert a suberror type into the main ImgiiError type.
-//
-// This makes it easier to maintain, as more errors are added. This pattern should be replicated for
-// suberrors which have their own suberrors.
-impl From<FontError> for ImgiiError {
-    fn from(err: FontError) -> Self {
-        Self::Font(err)
-    }
-}
-
-impl From<ParseError> for ImgiiError {
-    fn from(value: ParseError) -> Self {
-        Self::Parse(value)
-    }
-}
-
-impl From<InternalError> for ImgiiError {
-    fn from(err: InternalError) -> Self {
-        Self::Internal(err)
-    }
-}
-
-impl From<std::io::Error> for ImgiiError {
-    fn from(value: std::io::Error) -> Self {
-        Self::Io(value)
-    }
-}
-
-impl From<ImageError> for ImgiiError {
-    fn from(value: ImageError) -> Self {
-        Self::Image(value)
-    }
-}
-
-impl From<InvalidParameterError> for ImgiiError {
-    fn from(value: InvalidParameterError) -> Self {
-        Self::Image(ImageError::InvalidParameter(value))
-    }
-}
-
-impl From<ParseImageError> for ImgiiError {
-    fn from(value: ParseImageError) -> Self {
-        Self::Image(ImageError::ParseImage(value))
-    }
-}
-
-impl From<RenderError> for ImgiiError {
-    fn from(value: RenderError) -> Self {
-        Self::Image(ImageError::Render(value))
-    }
-}
-
-// for converting from errors boxed at runtime
-impl From<BoxedDynErr> for ImgiiError {
-    fn from(value: BoxedDynErr) -> Self {
-        Self::Other(OtherError::new(value))
-    }
-}
-
-// for converting from a regular expression error (not ours)
-impl From<regex::Error> for ParseError {
-    fn from(err: regex::Error) -> Self {
-        Self::Regex(err)
-    }
-}
+// ImgiiError should only have to implement From for errors for convenience. This avoids having to
+// map_err from one error to another.
 impl From<regex::Error> for ImgiiError {
     fn from(err: regex::Error) -> Self {
         Self::Parse(ParseError::Regex(err))
-    }
-}
-
-impl From<ParseIntError> for ParseError {
-    fn from(err: ParseIntError) -> Self {
-        Self::ParseValue(err)
-    }
-}
-impl From<ParseIntError> for ImgiiError {
-    fn from(err: ParseIntError) -> Self {
-        Self::Parse(ParseError::ParseValue(err))
-    }
-}
-
-/*
- * NOTE: Add any custom implementation blocks for errors below.
- */
-
-impl FontError {
-    /// Creates a new [`FontError`].
-    ///
-    /// * `font_name`: The font file name which failed to be created.
-    #[must_use]
-    pub fn new(font_name: String) -> Self {
-        Self { font_name }
-    }
-}
-
-impl ParseIntError {
-    /// Creates a new [`ParseIntError`].
-    ///
-    /// * `value_name`: The value name to parse.
-    /// * `the_str`: The string that parsing was attempted on.
-    /// * `err`: The `std::num::ParseIntError` that was emitted.
-    #[must_use]
-    pub fn new(value_name: String, the_str: String, err: std::num::ParseIntError) -> Self {
-        Self {
-            value_name,
-            the_str,
-            err,
-        }
-    }
-}
-
-impl OtherError {
-    /// Creates a new [`OtherError`] from a boxed error (created at runtime).
-    ///
-    /// For use with other kinds of errors that the program can handle.
-    ///
-    /// * `other_err`: The other error, boxed.
-    #[must_use]
-    pub fn new(other_err: BoxedDynErr) -> Self {
-        Self { other_err }
-    }
-}
-
-impl InvalidParameterError {
-    /// Creates a new [`InvalidParameterError`].
-    ///
-    /// * `parameter_name`: The parameter name(s) that was invalid.
-    #[must_use]
-    pub fn new(parameter_name: String) -> Self {
-        Self { parameter_name }
-    }
-}
-
-impl ParseImageError {
-    /// Creates a new [`ParseImageError`].
-    ///
-    /// * `image_row_number`: The image row number.
-    #[must_use]
-    pub fn new(image_row_number: usize) -> Self {
-        Self { image_row_number }
-    }
-}
-
-impl RenderError {
-    /// Creates a new [`RenderError`].
-    ///
-    /// * `reason`: The reason for the render error.
-    #[must_use]
-    pub fn new(reason: String) -> Self {
-        Self { reason }
     }
 }
