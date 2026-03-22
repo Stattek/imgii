@@ -1145,9 +1145,9 @@ dependencies = [
 
 [[package]]
 name = "rascii_art_img"
-version = "0.4.7"
+version = "0.4.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "12329487092c3301421bf8625241af47e375ebd67fc01b98d0b7527e3a398145"
+checksum = "606a1fb24a05ce8558ad454e7df938e2f29da101b7f3daaa70ef78d78c533e91"
 dependencies = [
  "ansi_term",
  "clap",
