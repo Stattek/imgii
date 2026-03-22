@@ -3,18 +3,12 @@ use std::{collections::HashMap, sync::Arc};
 use crate::{
     ImgiiOptions,
     conversion::{image_data::ImageData, render_char_to_png::str_to_png},
-    error::{FontError, ImgiiError, ParseIntError, RenderError},
+    error::{FontError, ImageError, ImgiiError, ParseError},
 };
 
 use super::super::render_char_to_png::{ColoredStr, str_to_transparent_png};
 use ab_glyph::FontRef;
 use regex::Regex;
-
-// TODO: Read this font at runtime instead and allow the user to choose
-
-// read bytes for the font
-const FONT_FILE: &str = "../../../fonts/UbuntuMono.ttf";
-const FONT_BYTES: &[u8] = include_bytes!("../../../fonts/UbuntuMono.ttf");
 
 /// Simple struct for holding a 2d image with its width and height.
 #[derive(Clone, Debug)]
@@ -36,9 +30,11 @@ pub(crate) fn render_ascii_generic(
     ascii_text: String,
 ) -> Result<Imgii2dImage, ImgiiError> {
     // set up font for rendering
-    let font = FontRef::try_from_slice(FONT_BYTES)
+    let font = FontRef::try_from_slice(imgii_options.font().as_slice())
         // there's nothing useful in this error, convert it!
-        .map_err(|_| FontError::new(String::from(FONT_FILE)))?;
+        .map_err(|_| FontError::FontLoad {
+            font_name: String::from(imgii_options.font_name()),
+        })?;
 
     // 2d Vec of images for each character
     let mut image_2d_vec = Vec::new();
@@ -70,14 +66,20 @@ pub(crate) fn render_ascii_generic(
 
         // create the image for this character
         for (_full_str, [r, g, b, the_str]) in re.captures_iter(line).map(|c| c.extract()) {
-            let red = r.parse::<u8>().map_err(|err| {
-                ParseIntError::new(String::from("red"), String::from(the_str), err)
+            let red = r.parse::<u8>().map_err(|err| ParseError::ParseColor {
+                value_name: String::from("red"),
+                the_str: String::from(the_str),
+                err: err,
             })?;
-            let green = g.parse::<u8>().map_err(|err| {
-                ParseIntError::new(String::from("green"), String::from(the_str), err)
+            let green = g.parse::<u8>().map_err(|err| ParseError::ParseColor {
+                value_name: String::from("green"),
+                the_str: String::from(the_str),
+                err: err,
             })?;
-            let blue = b.parse::<u8>().map_err(|err| {
-                ParseIntError::new(String::from("blue"), String::from(the_str), err)
+            let blue = b.parse::<u8>().map_err(|err| ParseError::ParseColor {
+                value_name: String::from("blue"),
+                the_str: String::from(the_str),
+                err: err,
             })?;
 
             let generated_png = {
@@ -102,13 +104,18 @@ pub(crate) fn render_ascii_generic(
                             // we haven't rendered this image before, so render it
                             let image_data = Arc::from(str_to_png(&colored, &font, imgii_options));
                             let result = rendered_images.insert(colored, image_data.clone());
-                            if result.is_some() {
-                                return Err(RenderError::new(String::from(
-                                    "this image should not exist already in the hash map",
-                                ))
-                                .into());
+                            match result {
+                                None => image_data,
+                                Some(colored) => {
+                                    // the returned image from insert should be the same as the one
+                                    // we put in
+                                    return Err(ImageError::Render {
+                                        reason: format!(
+                                            "the image ({colored:?}) should not exist already in the hash map",
+                                        ),
+                                    }.into());
+                                }
                             }
-                            image_data
                         }
                     }
                 }
@@ -127,10 +134,12 @@ pub(crate) fn render_ascii_generic(
         } else {
             // check that this width is always the same now that we have the width
             if width != line_width {
-                return Err(RenderError::new(format!(
-                    "width {} is not equal to the current line width {}",
-                    width, line_width
-                ))
+                return Err(ImageError::Render {
+                    reason: format!(
+                        "width {} is not equal to the current line width {}",
+                        width, line_width
+                    ),
+                }
                 .into());
             }
         }
@@ -139,11 +148,13 @@ pub(crate) fn render_ascii_generic(
     // Check that the length of the final vector is what we expect. If not, something has gone
     // terribly wrong, and we should not continue.
     if width * height != image_2d_vec.len() {
-        return Err(RenderError::new(format!(
-            "expected length of the 2d vector was {} but got {}",
-            width * height,
-            image_2d_vec.len()
-        ))
+        return Err(ImageError::Render {
+            reason: format!(
+                "expected length of the 2d vector was {} but got {}",
+                width * height,
+                image_2d_vec.len()
+            ),
+        }
         .into());
     }
 

@@ -1,7 +1,7 @@
 use super::generic_converter::render_ascii_generic;
 use crate::{
     conversion::converters::generic_converter::Imgii2dImage,
-    error::{BoxedDynErr, ImgiiError},
+    error::ImgiiError,
     options::{ImgiiOptions, RasciiOptions},
 };
 
@@ -39,9 +39,10 @@ pub(crate) fn read_png_as_ascii(
 ) -> Result<String, ImgiiError> {
     // render the ascii text with RASCII
     let mut ascii_text = String::new();
-    let loaded_img = open(input_file_name).map_err(|err| -> BoxedDynErr { Box::new(err) })?;
+    let loaded_img =
+        open(input_file_name).map_err(|err| -> ImgiiError { anyhow::Error::new(err).into() })?;
     render_image_to(&loaded_img, &mut ascii_text, rascii_options)
-        .map_err(|err| -> BoxedDynErr { Box::new(err) })?;
+        .map_err(|err| -> ImgiiError { anyhow::Error::new(err).into() })?;
 
     Ok(ascii_text)
 }

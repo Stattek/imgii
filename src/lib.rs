@@ -3,6 +3,7 @@
 
 pub(crate) mod conversion;
 pub mod error;
+pub mod fonts;
 pub mod image_types;
 pub mod options;
 
@@ -19,7 +20,7 @@ use crate::{
         },
         image_writer::AsciiImageWriter,
     },
-    error::{BoxedDynErr, ImgiiError},
+    error::ImgiiError,
     options::ImgiiOptions,
 };
 
@@ -85,7 +86,7 @@ pub fn convert_to_ascii_png(
         .imagebuf
         .as_buffer()
         .save(&output_file_name)
-        .map_err(|err| -> BoxedDynErr { Box::new(err) })?;
+        .map_err(|err| -> ImgiiError { anyhow::Error::new(err).into() })?;
     Ok(())
 }
 
@@ -184,8 +185,8 @@ pub fn convert_to_ascii_gif(
     let err = gif_encoder.set_repeat(image::codecs::gif::Repeat::Infinite);
     if let Err(err) = err {
         // repeat couldn't be set properly
-        let err_box: BoxedDynErr = Box::new(err);
-        return Err(err_box.into());
+        let err = anyhow::Error::new(err);
+        return Err(err.into());
     }
 
     // FUTURE: the longest part of the GIF creation process is encoding...is there any way to speed
@@ -194,8 +195,8 @@ pub fn convert_to_ascii_gif(
     // encode the frames
     match gif_encoder.encode_frames(frames) {
         Err(err) => {
-            let err_box: BoxedDynErr = Box::new(err);
-            Err(err_box.into())
+            let err = anyhow::Error::new(err);
+            Err(err.into())
         }
         _ => Ok(()),
     }
