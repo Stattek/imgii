@@ -154,6 +154,53 @@ fn setup_threads() {
     }
 }
 
+/// Loads a font based on the input font name.
+///
+/// * `font_name`: The optional font name. Uses the first (alphabetically) monospace font installed
+/// on the system.
+/// * `builder`: The builder to add the font to.
+fn imgii_builder_load_font<'a>(
+    font_name: Option<String>,
+    mut builder: ImgiiOptionsBuilder<'a>,
+) -> Result<ImgiiOptionsBuilder<'a>, ImgiiError> {
+    // get the font name
+    let font_name = {
+        match font_name {
+            Some(font_name) => font_name,
+            None => {
+                // if we didn't get a font name, use the first font (alphabetically) that is
+                // installed on the system
+                let mut fonts = list_fonts();
+                log::debug!("Found fonts installed on system: {:?}", fonts);
+                assert!(
+                    !fonts.is_empty(),
+                    "there are no monospace truetype (.ttf) fonts installed that could be found"
+                );
+                fonts.swap_remove(0)
+            }
+        }
+    };
+
+    // read the font that the user wants to use
+    log::debug!("Attempting to load font {}", font_name);
+    // NOTE: if the user inputs an invalid font, it seems to fall back to the first monospace
+    // font it can find
+    match load_monospace_font(&font_name) {
+        Some((font, _)) => {
+            // successfully loaded font
+            builder = builder.font(font).font_name(font_name);
+        }
+        None => {
+            // could not load the font
+            return Err(ImgiiError::Font(FontError::FontLoad {
+                font_name: font_name,
+            })
+            .into());
+        }
+    };
+    Ok(builder)
+}
+
 /// Creates an instance of [`ImgiiOptions`] for the CLI for imgii.
 ///
 /// * `font_size`: The font size argument.
@@ -169,51 +216,10 @@ fn create_imgii_options<'a>(
     char_override: Option<String>,
 ) -> Result<ImgiiOptions<'a>, ImgiiError> {
     let mut builder: ImgiiOptionsBuilder<'a> = ImgiiOptionsBuilder::new().background(background);
-
     // build the complex values first
-    if let Some(font_name) = font_name {
-        // read the font that the user wants to use
 
-        // NOTE: if the user inputs an invalid font, it seems to fall back to the first monospace
-        // font it can find
-        match load_monospace_font(&font_name) {
-            Some((font, _)) => {
-                // successfully loaded font
-                dbg!("loaded font successfully");
-                dbg!(&font_name);
-                builder = builder.font(font).font_name(font_name);
-            }
-            None => {
-                // could not load the font
-                return Err(ImgiiError::Font(FontError::FontLoad {
-                    font_name: font_name,
-                })
-                .into());
-            }
-        };
-    } else {
-        // we need to load the first font that we can find :)
-        let mut fonts = list_fonts();
-        assert!(
-            !fonts.is_empty(),
-            "list of installed monospace fonts is empty"
-        );
-        match load_monospace_font(&fonts[0]) {
-            Some((font, _)) => {
-                // loaded first font successfully
-                dbg!("loaded font successfully");
-                dbg!(&fonts[0]);
-                builder = builder.font(font).font_name(fonts.remove(0));
-            }
-            None => {
-                // could not load the font
-                return Err(ImgiiError::Font(FontError::FontLoad {
-                    font_name: fonts.remove(0),
-                })
-                .into());
-            }
-        }
-    }
+    // load the font
+    builder = imgii_builder_load_font(font_name, builder)?;
     if let Some(font_size) = font_size {
         builder = builder.font_size(font_size);
     }
@@ -282,7 +288,7 @@ fn main() {
     ) else {
         panic!("could not create imgii options");
     };
-    log::debug!("imgii options = {:?}", imgii_options);
+    log::debug!("imgii options = {}", imgii_options);
 
     // Now, handle the conversion
     match image_type {

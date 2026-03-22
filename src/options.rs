@@ -1,5 +1,7 @@
 //! The options for using imgii.
 
+use std::fmt::Display;
+
 // We need to re-export these, as they might be necessary for users of this library. Imgii's CLI
 // uses these.
 pub use rascii_art_img::RenderOptions as RasciiOptions;
@@ -83,6 +85,25 @@ impl<'a> ImgiiOptions<'a> {
     #[must_use]
     pub fn rascii_options(&self) -> &RasciiOptions<'a> {
         &self.rascii_options
+    }
+}
+
+impl<'a> Display for ImgiiOptions<'a> {
+    /// Writes an `[ImgiiOptions]` instance. This should be preferred over debug printing, as
+    /// `[ImgiiOptions]` can hold a lot of binary data.
+    ///
+    /// * `f`: The formatter.
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        // write everything that won't spam a bunch of binary data
+        write!(
+            f,
+            "{{font.len()={}; font_name={}; font_size={}, background={}; rascii_options={:?}}}",
+            self.font.len(),
+            self.font_name,
+            self.font_size,
+            self.background,
+            self.rascii_options
+        )
     }
 }
 
