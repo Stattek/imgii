@@ -1,6 +1,12 @@
+//! The main file for the `imgii` CLI tool.
+
 use clap::Parser;
 use clap::builder as clap_builder;
 use clap::builder::styling as clap_styling;
+use imgii::error::FontError;
+use imgii::error::ImgiiError;
+use imgii::fonts::list_fonts;
+use imgii::fonts::load_monospace_font;
 use rayon::iter::{IntoParallelIterator, ParallelIterator};
 use std::{sync::Arc, time::Instant};
 
@@ -16,7 +22,7 @@ use imgii::{
 #[derive(Debug, Parser)]
 #[command(author, version, about, styles=set_color_style())]
 struct Args {
-    /// Path to the input image
+    /// Path to the input image.
     ///
     /// Can also specify a format for an input, if <FINAL_IMAGE_INDEX> is also set to the final
     /// input image index.
@@ -40,9 +46,13 @@ struct Args {
     width: Option<u32>,
 
     /// Height (in characters) of the output image, if not specified, it will be calculated to keep
-    /// the aspect ratio
+    /// the aspect ratio.
     #[arg(short = 'H', long)]
     height: Option<u32>,
+
+    /// The name of the installed monospace font to use. Must be an installed TrueType font (.ttf).
+    #[arg(short = 'n', long)]
+    font_name: Option<String>,
 
     /// The font size of the output image.
     /// Larger font sizes incur harsher performance penalties.
@@ -144,38 +154,79 @@ fn setup_threads() {
     }
 }
 
+/// Loads a font based on the input font name.
+///
+/// * `font_name`: The optional font name. Uses the first (alphabetically) monospace font installed
+///   on the system.
+/// * `builder`: The builder to add the font to.
+fn imgii_builder_load_font<'a>(
+    font_name: Option<String>,
+    builder: ImgiiOptionsBuilder<'a>,
+) -> Result<ImgiiOptionsBuilder<'a>, ImgiiError> {
+    // get the font name
+    let font_name = {
+        match font_name {
+            Some(font_name) => font_name,
+            None => {
+                // if we didn't get a font name, use the first font (alphabetically) that is
+                // installed on the system
+                let mut fonts = list_fonts();
+                log::debug!("Found fonts installed on system: {:?}", fonts);
+                assert!(
+                    !fonts.is_empty(),
+                    "there are no monospace truetype (.ttf) fonts installed that could be found"
+                );
+                fonts.swap_remove(0)
+            }
+        }
+    };
+
+    // read the font that the user wants to use
+    log::debug!("Attempting to load font {}", font_name);
+    // NOTE: if the user inputs an invalid font, it seems to fall back to the first monospace
+    // font it can find
+    match load_monospace_font(&font_name) {
+        Some((font, _)) => {
+            // successfully loaded font
+            Ok(builder.font(font).font_name(font_name))
+        }
+        None => {
+            // could not load the font
+            Err(ImgiiError::Font(FontError::FontLoad { font_name }))
+        }
+    }
+}
+
 /// Creates an instance of [`ImgiiOptions`] for the CLI for imgii.
 ///
-/// * `font_size`: The font size argument.
-/// * `background`: The background flag.
+/// * `args`: The CLI arguments.
+/// * `rascii_charset`: The rascii
 fn create_imgii_options<'a>(
-    font_size: Option<u32>,
-    background: bool,
-    width: Option<u32>,
-    height: Option<u32>,
-    invert: bool,
+    args: Args,
     rascii_charset: Charset,
-    char_override: Option<String>,
-) -> ImgiiOptions<'a> {
-    let mut builder = ImgiiOptionsBuilder::new().background(background);
-
+) -> Result<ImgiiOptions<'a>, ImgiiError> {
+    let mut builder: ImgiiOptionsBuilder<'a> =
+        ImgiiOptionsBuilder::new().background(args.background);
     // build the complex values first
-    if let Some(font_size) = font_size {
+
+    // load the font
+    builder = imgii_builder_load_font(args.font_name, builder)?;
+    if let Some(font_size) = args.font_size {
         builder = builder.font_size(font_size);
     }
-    if let Some(width) = width {
+    if let Some(width) = args.width {
         builder = builder.width(width);
     }
-    if let Some(height) = height {
+    if let Some(height) = args.height {
         builder = builder.height(height);
     }
-    if let Some(char_override) = char_override {
+    if let Some(char_override) = args.char_override {
         // converts the string to a string vec if it is Some, otherwise stores as None
-        builder = builder.char_override(convert_string_to_str_vec(char_override));
+        builder = builder.char_override(convert_string_to_str_vec(&char_override));
     }
 
     builder
-        .invert(invert)
+        .invert(args.invert)
         .charset(from_enum(rascii_charset))
         .build()
 }
@@ -216,16 +267,10 @@ fn main() {
     };
 
     // our options for rendering ASCII in imgii
-    let imgii_options = create_imgii_options(
-        args.font_size,
-        args.background,
-        args.width,
-        args.height,
-        args.invert,
-        rascii_charset,
-        args.char_override,
-    );
-    log::debug!("imgii options = {:?}", imgii_options);
+    let Ok(imgii_options) = create_imgii_options(args, rascii_charset) else {
+        panic!("could not create imgii options");
+    };
+    log::debug!("imgii options = {}", imgii_options);
 
     // Now, handle the conversion
     match image_type {

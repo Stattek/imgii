@@ -1,3 +1,5 @@
+//! Contains helpers for handling supported output image types.
+
 /// Holds the image types that imgii can output.
 /// Each value holds an index into the `IMAGE_STR_TYPES` array.
 #[derive(Debug, Clone, Copy)]

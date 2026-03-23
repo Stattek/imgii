@@ -1,9 +1,11 @@
+//! Implementation for writing ascii as an image.
+
 use crate::{
     conversion::{
         converters::generic_converter::Imgii2dImage,
         image_data::{ImageData, InternalImage},
     },
-    error::{ImgiiError, InvalidParameterError},
+    error::ImgiiError,
 };
 use rayon::prelude::*;
 
@@ -37,7 +39,7 @@ impl AsciiImageWriter {
     pub(crate) fn from_2d_vec(the_image: Imgii2dImage) -> Result<Self, ImgiiError> {
         if the_image.image_2d.is_empty() {
             // no image to build
-            return Err(InvalidParameterError::new(String::from("parts")).into());
+            return Err(ImgiiError::InvalidArgument);
         }
 
         // find out the new canvas size
