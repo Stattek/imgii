@@ -121,7 +121,8 @@ pub fn convert_to_ascii_png(
 /// let imgii_options = ImgiiOptionsBuilder::new()
 ///     .background(true) // set black background behind GIF
 ///     .width(50) // keeps the aspect ratio but is 50 pixels wide
-///     .build();
+///     .build()
+///     .unwrap();
 ///
 /// // perform the conversion
 /// match convert_to_ascii_gif(
