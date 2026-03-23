@@ -54,7 +54,8 @@ use crate::{
 /// let imgii_options = ImgiiOptionsBuilder::new()
 ///     .charset(from_enum(Charset::Minimal))
 ///     .background(false)
-///     .build();
+///     .build()
+///     .unwrap();
 ///
 /// // perform the conversion
 /// match convert_to_ascii_png(

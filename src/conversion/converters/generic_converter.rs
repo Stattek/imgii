@@ -71,17 +71,17 @@ pub(crate) fn render_ascii_generic(
             let red = r.parse::<u8>().map_err(|err| ParseError::ParseColor {
                 value_name: String::from("red"),
                 the_str: String::from(the_str),
-                err: err,
+                err,
             })?;
             let green = g.parse::<u8>().map_err(|err| ParseError::ParseColor {
                 value_name: String::from("green"),
                 the_str: String::from(the_str),
-                err: err,
+                err,
             })?;
             let blue = b.parse::<u8>().map_err(|err| ParseError::ParseColor {
                 value_name: String::from("blue"),
                 the_str: String::from(the_str),
-                err: err,
+                err,
             })?;
 
             let generated_png = {

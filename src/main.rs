@@ -157,7 +157,7 @@ fn setup_threads() {
 /// Loads a font based on the input font name.
 ///
 /// * `font_name`: The optional font name. Uses the first (alphabetically) monospace font installed
-/// on the system.
+///   on the system.
 /// * `builder`: The builder to add the font to.
 fn imgii_builder_load_font<'a>(
     font_name: Option<String>,
@@ -192,10 +192,7 @@ fn imgii_builder_load_font<'a>(
         }
         None => {
             // could not load the font
-            return Err(ImgiiError::Font(FontError::FontLoad {
-                font_name: font_name,
-            })
-            .into());
+            return Err(ImgiiError::Font(FontError::FontLoad { font_name }));
         }
     };
     Ok(builder)
@@ -203,39 +200,34 @@ fn imgii_builder_load_font<'a>(
 
 /// Creates an instance of [`ImgiiOptions`] for the CLI for imgii.
 ///
-/// * `font_size`: The font size argument.
-/// * `background`: The background flag.
+/// * `args`: The CLI arguments.
+/// * `rascii_charset`: The rascii
 fn create_imgii_options<'a>(
-    font_name: Option<String>,
-    font_size: Option<u32>,
-    background: bool,
-    width: Option<u32>,
-    height: Option<u32>,
-    invert: bool,
+    args: Args,
     rascii_charset: Charset,
-    char_override: Option<String>,
 ) -> Result<ImgiiOptions<'a>, ImgiiError> {
-    let mut builder: ImgiiOptionsBuilder<'a> = ImgiiOptionsBuilder::new().background(background);
+    let mut builder: ImgiiOptionsBuilder<'a> =
+        ImgiiOptionsBuilder::new().background(args.background);
     // build the complex values first
 
     // load the font
-    builder = imgii_builder_load_font(font_name, builder)?;
-    if let Some(font_size) = font_size {
+    builder = imgii_builder_load_font(args.font_name, builder)?;
+    if let Some(font_size) = args.font_size {
         builder = builder.font_size(font_size);
     }
-    if let Some(width) = width {
+    if let Some(width) = args.width {
         builder = builder.width(width);
     }
-    if let Some(height) = height {
+    if let Some(height) = args.height {
         builder = builder.height(height);
     }
-    if let Some(char_override) = char_override {
+    if let Some(char_override) = args.char_override {
         // converts the string to a string vec if it is Some, otherwise stores as None
         builder = builder.char_override(convert_string_to_str_vec(&char_override));
     }
 
     builder
-        .invert(invert)
+        .invert(args.invert)
         .charset(from_enum(rascii_charset))
         .build()
 }
@@ -276,16 +268,7 @@ fn main() {
     };
 
     // our options for rendering ASCII in imgii
-    let Ok(imgii_options) = create_imgii_options(
-        args.font_name,
-        args.font_size,
-        args.background,
-        args.width,
-        args.height,
-        args.invert,
-        rascii_charset,
-        args.char_override,
-    ) else {
+    let Ok(imgii_options) = create_imgii_options(args, rascii_charset) else {
         panic!("could not create imgii options");
     };
     log::debug!("imgii options = {}", imgii_options);
