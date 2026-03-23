@@ -16,16 +16,13 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
+      with:
+        packages: libfontconfig libfontconfig1-dev
+        version: 1.0
     - name: Build
-      run: |
-        sudo apt-get update
-        sudo apt-get install libfontconfig libfontconfig1-dev
-        cargo build --verbose
+      run: cargo build --verbose
     - name: Run tests
-      run: |
-        sudo apt-get update
-        sudo apt-get install libfontconfig libfontconfig1-dev
-        cargo test --verbose
+      run: cargo test --verbose
 
   clippy:
 
@@ -34,4 +31,7 @@ jobs:
     steps:
     - uses: actions/checkout@v4
     - name: Clippy
-      run: cargo clippy -- -Dwarnings
+      run: |
+        sudo apt-get update
+        sudo apt-get install libfontconfig libfontconfig1-dev
+        cargo clippy -- -Dwarnings
