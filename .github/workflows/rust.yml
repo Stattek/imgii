@@ -34,8 +34,9 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - name: Clippy
+    - name: Install Dependencies
       run: |
         sudo apt-get update
         sudo apt-get install libfontconfig libfontconfig1-dev
-        cargo clippy -- -Dwarnings
+    - name: Clippy
+      run: cargo clippy -- -Dwarnings
