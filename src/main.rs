@@ -188,14 +188,13 @@ fn imgii_builder_load_font<'a>(
     match load_monospace_font(&font_name) {
         Some((font, _)) => {
             // successfully loaded font
-            builder = builder.font(font).font_name(font_name);
+            Ok(builder.font(font).font_name(font_name))
         }
         None => {
             // could not load the font
-            return Err(ImgiiError::Font(FontError::FontLoad { font_name }));
+            Err(ImgiiError::Font(FontError::FontLoad { font_name }))
         }
-    };
-    Ok(builder)
+    }
 }
 
 /// Creates an instance of [`ImgiiOptions`] for the CLI for imgii.
