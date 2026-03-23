@@ -161,7 +161,7 @@ fn setup_threads() {
 /// * `builder`: The builder to add the font to.
 fn imgii_builder_load_font<'a>(
     font_name: Option<String>,
-    mut builder: ImgiiOptionsBuilder<'a>,
+    builder: ImgiiOptionsBuilder<'a>,
 ) -> Result<ImgiiOptionsBuilder<'a>, ImgiiError> {
     // get the font name
     let font_name = {
