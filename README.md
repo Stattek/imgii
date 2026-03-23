@@ -9,6 +9,22 @@ Supports popular image types as input, such as PNG, JPEG, GIF, WEBP, and more.
 
 ## Installing
 
+### Requirements
+
+Building requires the following dependencies:
+
+For Ubuntu/Debian:
+
+```sh
+sudo apt-get install libfontconfig libfontconfig1-dev
+```
+
+For Arch Linux:
+
+```sh
+sudo pacman -S fontconfig
+```
+
 Install `imgii` as a binary:
 
 ```bash
