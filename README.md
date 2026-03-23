@@ -57,7 +57,7 @@ Usage: imgii [OPTIONS] <INPUT_FILENAME> <OUTPUT_FILENAME> [FINAL_IMAGE_INDEX]
 
 Arguments:
   <INPUT_FILENAME>
-          Path to the input image
+          Path to the input image.
 
           Can also specify a format for an input, if <FINAL_IMAGE_INDEX> is also set to the final input image index.
 
@@ -81,6 +81,9 @@ Options:
 
   -H, --height <HEIGHT>
           Height (in characters) of the output image, if not specified, it will be calculated to keep the aspect ratio
+
+  -n, --font-name <FONT_NAME>
+          The name of the installed monospace font to use. Must be an installed TrueType font (.ttf)
 
   -f, --font-size <FONT_SIZE>
           The font size of the output image. Larger font sizes incur harsher performance penalties.
@@ -114,7 +117,7 @@ Options:
 
 ```bash
 # Makes assumptions about how to convert the image.
-cargo run --release -- input_img.png output_ascii_img.png
+imgii input_img.png output_ascii_img.png
 ```
 
 ### Examples Using Arguments
@@ -122,23 +125,26 @@ cargo run --release -- input_img.png output_ascii_img.png
 ```bash
 # renders an image with a width of 150 characters, using the block charset.
 # NOTE: Just setting --width will maintain the aspect ratio of the input
-cargo run --release -- --charset block --width 100 input_img.png output_ascii_img.png
+imgii --charset block --width 100 input_img.png output_ascii_img.png
 
 # Sets a background behind the result, can often look better
-cargo run --release -- --background input.gif output_ascii.gif
+imgii --background input.gif output_ascii.gif
 
 # Forces the output to have a width of 10 characters and a height of 100 characters.
-cargo run --release -- --width 10 --height 100 input.gif output_ascii.gif
+imgii --width 10 --height 100 input.gif output_ascii.gif
+
+# Uses a specific font
+imgii input.png output.png --font-name "Adwaita Mono"
 ```
 
 ### Example With More Verbose Output
 
 ```bash
 # Running with debug logs enabled
-RUST_LOG=debug cargo run --release -- --background input_img.png output_ascii_img.png
+RUST_LOG=debug imgii --background input_img.png output_ascii_img.png
 
 # Running with info logs enabled
-RUST_LOG=info cargo run --release -- --background input_img.png output_ascii_img.png
+RUST_LOG=info imgii --background input_img.png output_ascii_img.png
 ```
 
 ## Supported Output Image Types
@@ -153,7 +159,7 @@ Specifying an output type can be done simply by changing the filetype in the out
 
 ```bash
 # Takes an input GIF and imgii will convert to an output GIF
-cargo run --release -- input.gif output.gif
+imgii input.gif output.gif
 ```
 
 ## Example Output
