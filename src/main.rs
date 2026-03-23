@@ -22,7 +22,7 @@ use imgii::{
 #[derive(Debug, Parser)]
 #[command(author, version, about, styles=set_color_style())]
 struct Args {
-    /// Path to the input image
+    /// Path to the input image.
     ///
     /// Can also specify a format for an input, if <FINAL_IMAGE_INDEX> is also set to the final
     /// input image index.
@@ -46,11 +46,11 @@ struct Args {
     width: Option<u32>,
 
     /// Height (in characters) of the output image, if not specified, it will be calculated to keep
-    /// the aspect ratio
+    /// the aspect ratio.
     #[arg(short = 'H', long)]
     height: Option<u32>,
 
-    /// The name of the installed monospace font to use.
+    /// The name of the installed monospace font to use. Must be an installed TrueType font (.ttf).
     #[arg(short = 'n', long)]
     font_name: Option<String>,
 
